@@ -654,14 +654,23 @@ def kindoflayer(k,w):
 
 
 ## 3) Methods to randomly generate Boolean functions (uniform distribution) and Boolean networks
+#logical operators and their precedences
+operators = {
+    "or": 1,
+    "and": 2,
+    "not": 3,
+    "(": 18,
+    ")": 18
+}
+
 def f_from_expression(expr):
-    expr = expr.replace('(',' ( ').replace(')',' ) ')
+    expr = expr.replace('(',' ( ').replace(')',' ) ').lower()
     expr_split = expr.split(' ')
     var = []
     dict_var = dict()
     n_var = 0
     for i,el in enumerate(expr_split):
-        if el not in ['',' ','(',')','and','or','not','AND','OR','NOT','&','|','~','+','-','*','%','>','>=','==','<=','<'] and not el.isdigit():
+        if el not in operators and not el.isdigit() and el != '':
             try:
                 new_var = dict_var[el]
             except KeyError:
@@ -671,10 +680,70 @@ def f_from_expression(expr):
                 n_var += 1
             expr_split[i] = new_var
     expr = ' '.join(expr_split)
-    F = []
+
+    f = np.array([],dtype=int)
     for x in itertools.product([0, 1], repeat = n_var):
-        F.append(int(eval(expr))) #x is used here "implicitly"
-    return F,var
+        f = np.append(f, eval_expr(expr, x)%2)
+        
+    return (f,var)
+
+#Shunting-yard algorithm to evaluate expression
+def eval_expr(expr, x):
+    op_stack = []
+    val_stack = []
+    prevToken = ""
+    for token in expr.split(' '):
+        if token == '':
+            continue
+
+        if not token in operators:
+            val = x[int(token[2:-1])]
+            val_stack.append(val)
+        elif token == '(':
+            op_stack.append(token)
+        elif token == ')':
+            while op_stack[-1] != '(':
+                apply_first_op(op_stack, val_stack)
+
+            op_stack.pop()
+        else:
+            while len(op_stack) > 0 and op_stack[-1] != "(" and get_precedence(op_stack[-1]) >= get_precedence(token):
+                apply_first_op(op_stack, val_stack)
+            op_stack.append(token)
+        
+        prevToken = token
+
+    while len(op_stack) > 0:
+        apply_first_op(op_stack, val_stack)
+
+    return val_stack[0]
+
+#Helper functions to eval_expr()
+def apply_first_op(op_stack, val_stack):
+    assert len(op_stack) > 0
+    operator = op_stack.pop()
+    if operator == "not":
+        val_stack.append(int(not val_stack.pop()))
+        return
+
+    val1 = val_stack.pop()
+    val2 = val_stack.pop()
+    outval = 0
+    outval = apply_operator(operator, val1, val2)
+    val_stack.append(outval)
+
+def get_precedence(operator):
+    return operators[operator]
+def apply_operator(operator, val1, val2):
+    if operator == "not":
+        return int(not val1)
+    elif operator == "and":
+        return int(val1 and val2)
+    elif operator == "or":
+        return int(val1 or val2)
+    else:
+        print("err, unrecognized operator: ", operator)
+
 
 def random_function(n):
     return np.random.randint(2, size = 2**n)    
