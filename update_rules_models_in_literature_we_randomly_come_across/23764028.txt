@@ -1,0 +1,3 @@
+AsNOS	=	TGF−beta1 AND NOT MEK/ERK
+RNS	=	AsNOS
+ERK	=	RNS

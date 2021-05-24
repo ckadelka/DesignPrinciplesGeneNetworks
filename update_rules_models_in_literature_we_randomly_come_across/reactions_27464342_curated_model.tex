@@ -1,0 +1,152 @@
+hk=LBP                                              	1 hk = 1 LBP 	| 	# 	0             0             0      637.4108       90.9828             1             3             1 
+hk=CD14                                             	1 hk = 1 CD14 	| 	# 	0             0             0      632.5427      136.6812             1             3             1 
+hk=TLR4                                             	1 hk = 1 TLR4 	| 	# 	0             0             0      624.4292      189.6913             1             3             1 
+hk=MD2                                              	1 hk = 1 MD2 	| 	# 	0             0             0      637.4108      228.0779             1             3             1 
+hk=Mal                                              	1 hk = 1 Mal 	| 	# 	0              0              0      1112.8627       326.7864              1              3              1 
+hk=MyD88                                            	1 hk = 1 MyD88 	| 	# 	0              0              0      1122.5989       376.1407              1              3              1 
+hk=TRAM                                             	1 hk = 1 TRAM 	| 	# 	0             0             0      663.3741      328.6144             1             3             1 
+hk=TRIF                                             	1 hk = 1 TRIF 	| 	# 	0             0             0      668.2422      379.7966             1             3             1 
+hk=RIP1                                             	1 hk = 1 RIP1 	| 	# 	0              0              0      1390.3449       184.2075              1              3              1 
+LBP+CD14+TLR4+MD2+!SIGIRR+!ST2+LPS=TLR4RC           	1 LBP + 1 CD14 + 1 TLR4 + 1 MD2 + 1 !SIGIRR + 1 !ST2 + 1 LPS = 1 TLR4RC 	| 	# 	0              1              0      1071.6873       293.3582              1              1              1 
+TLR4RC+TRAM+TRIF+!TRIAD3A=TBK1                      	1 TLR4RC + 1 TRAM + 1 TRIF + 1 !TRIAD3A = 1 TBK1 	| 	# 	0             2             0      981.2186      548.0175             1             1             1 
+TLR4RC+TRAM+TRIF+!TRIAD3A=TRAF6                     	1 TLR4RC + 1 TRAM + 1 TRIF + 1 !TRIAD3A = 1 TRAF6 	| 	# 	0              2              0      1071.6873        632.251              1              1              1 
+TRAF6+RIP1+!RIP3=IKK                                	1 TRAF6 + 1 RIP1 + 1 !RIP3 = 1 IKK 	| 	# 	0             2             0      927.3224      951.5546             1             1             1 
+TPL2=MKK1/2                                         	1 TPL2 = 1 MKK1/2 	| 	# 	0              1              0       977.3689      1137.6518              1              1              1 
+MKK1/2=ERK                                          	1 MKK1/2 = 1 ERK 	| 	# 	0              1              0       979.2938       1253.228              1              1              1 
+TBK1+!MK3=IRF3                                      	1 TBK1 + 1 !MK3 = 1 IRF3 	| 	# 	0              2              0       732.9111      1073.0075              1              1              1 
+IFNbmRNA=IFNb_syn                                   	1 IFNbmRNA = 1 IFNb_syn 	| 	# 	0              7              0       594.3208      1728.9337              1              1              1 
+TNFamRNA+!TTP=TNFa                                  	1 TNFamRNA + 1 !TTP = 1 TNFa_syn 	| 	# 	0              7              0      1302.6711      1723.3682              1              1              1 
+IL6mRNA+!TTP=IL6_syn                                	1 IL6mRNA + 1 !TTP = 1 IL6_syn 	| 	# 	0              7              0      1210.2776      1727.2861              1              1              1 
+TLR4RC+Mal+MyD88+!MyD88s=IRAK4                      	1 TLR4RC + 1 Mal + 1 MyD88 + 1 !MyD88s = 1 IRAK4 	| 	# 	0              1              0      1108.2597       473.5787              1              2              1 
+IRAK4+!IRAKM+!IRAK2c+!IRAK2d=IRAK1                  	1 IRAK4 + 1 !IRAKM + 1 !IRAK2c + 1 !IRAK2d = 1 IRAK1 	| 	# 	0              1              0      1156.3814       645.9634              1              1              1 
+TRAF6=TAB                                           	1 TRAF6 = 1 TAB 	| 	# 	0              1              0      1150.6068       828.1428              1              1              1 
+TAB=TAK1                                            	1 TAB = 1 TAK1 	| 	# 	0              1              0      1196.8035       914.3352              1              1              1 
+TAK1=IKK                                            	1 TAK1 = 1 IKK 	| 	# 	0              1              0        933.097        1014.24              1              1              1 
+TAK1=MKK3                                           	1 TAK1 = 1 MKK3 	| 	# 	0              1              0      1123.6586      1024.0346              1              1              1 
+TAK1=MKK6                                           	1 TAK1 = 1 MKK6 	| 	# 	0              1              0      1179.4797      1027.9524              1              1              1 
+TAK1=MKK4                                           	1 TAK1 = 1 MKK4 	| 	# 	0              1              0      1221.8268      1024.0346              1              1              1 
+TAK1=MKK7                                           	1 TAK1 = 1 MKK7 	| 	# 	0              1              0      1285.3473      1027.9524              1              1              1 
+MKK3+!dum_DUSP1_inh=p38                             	1 MKK3 + 1 !dum_DUSP1_inh = 1 p38 	| 	# 	0              1              0      1125.5835      1165.0767              1              1              1 
+MKK6+!dum_DUSP1_inh=p38                             	1 MKK6 + 1 !dum_DUSP1_inh = 1 p38 	| 	# 	0              1              0      1173.7051      1167.0356              1              1              1 
+MKK4+!dum_DUSP1_inh=p38                             	1 MKK4 + 1 !dum_DUSP1_inh = 1 p38 	| 	# 	0              1              0      1216.0522      1163.1177              1              1              1 
+MKK4=JNK                                            	1 MKK4 = 1 JNK 	| 	# 	0              1              0      1285.3473      1163.1177              1              1              1 
+MKK7=JNK                                            	1 MKK7 = 1 JNK 	| 	# 	0              1              0      1325.7695      1165.0767              1              1              1 
+p38=AP1                                             	1 p38 = 1 AP1 	| 	# 	0              1              0      1323.8446      1382.5165              1              1              1 
+IL4=IL4Ra/IL2Ry                                     	1 IL4 = 1 IL4Ra/IL2Ry 	| 	# 	0              1              0      1747.3149       171.9053              1              1              1 
+IL13=IL4Ra/IL13Ra1                                  	1 IL13 = 1 IL4Ra/IL13Ra1 	| 	# 	0              1              0      1901.3041       169.9464              1              1              1 
+IL4=IL4Ra/IL13Ra1                                   	1 IL4 = 1 IL4Ra/IL13Ra1 	| 	# 	0              1              0       1845.483       173.8642              1              1              1 
+hk=Tyk2                                             	1 hk = 1 Tyk2 	| 	# 	0              0              0       1907.987       346.8937              1              3              1 
+hk=Jak1                                             	1 hk = 1 Jak1 	| 	# 	0              0              0      1380.6086       260.9808              1              3              1 
+IFNb_medium=IFNAR                                   	1 IFNb_medium = 1 IFNAR 	| 	# 	0              1              0      2788.6668       175.9128              1              1              1 
+Jak1+IL-10R=Stat3                                   	1 Jak1 + 1 IL10R = 1 Stat3 	| 	# 	0              1              0      2667.4003      1270.8582              1              1              1 
+Socs3mRNA_Stat3=Socs3_Stat3                         	1 Socs3mRNA_Stat3 = 1 Socs3_Stat3 	| 	# 	0              7              0      2752.0943      1723.3682              1              1              1 
+!TTP+IL10mRNA_Stat3=IL10syn_Stat3                   	1 !TTP + 1 IL10mRNA_Stat3 = 1 IL10_syn_Stat3 	| 	# 	0              7              0      2663.5505      1723.3682              1              1              1 
+IL10_medium=IL10R                                   	1 IL10_medium = 1 IL10R 	| 	# 	0              1              0      2761.7186       173.8642              1              1              1 
+IL4Ra/IL2Ry+Jak1+!PP2A+!SHP1+!dum_Socs1_inh=Stat6   	1 IL4Ra/IL2Ry + 1 Jak1 + 1 !PP2A + 1 !SHP1 + 1 !dum_Socs1_inh = 1 Stat6 	| 	# 	0              1              0      2055.2932      1206.2139              1              1              1 
+IL4Ra/IL13Ra1+Jak1+!PP2A+!SHP1+!dum_Socs1_inh=Stat6 	1 IL4Ra/IL13Ra1 + 1 Jak1 + 1 !PP2A + 1 !SHP1 + 1 !dum_Socs1_inh = 1 Stat6 	| 	# 	0              1              0      2066.8424      1174.8712              1              1              1 
+IRAK1=TRAF6                                         	1 IRAK1 = 1 TRAF6 	| 	# 	0              1              0      1127.5084       730.1969              1              1              1 
+NFkB=TNFamRNA                                       	1 NFkB = 1 TNFamRNA 	| 	# 	0              5              0      1298.8214      1617.5867              1              1              1 
+NFkB+CREB+AP1=IL6mRNA                               	1 AP1 + 1 NFkB + 1 CREB = 1 IL6mRNA 	| 	# 	0              5              0      1210.2776      1617.5867              1              1              1 
+Stat3=IL10mRNA_Stat3                                	1 Stat3 = 1 IL10mRNA_Stat3 	| 	# 	0              5              0      2644.3019      1597.9975              1              1              1 
+Stat3=DUSP1mRNA_Stat3                               	1 Stat3 = 1 DUSP1mRNA_Stat3 	| 	# 	0              5              0      2584.6311      1596.0386              1              1              1 
+DUSP1mRNA_NFkB=DUSP1_NFkB                           	1 DUSP1mRNA_NFkB = 1 DUSP1_NFkB 	| 	# 	0              7              0       775.2581      1727.2861              1              1              1 
+NFkB=IL1bmRNA                                       	1 NFkB = 1 IL1bmRNA 	| 	# 	0              5              0       852.2527      1597.9975              1              1              1 
+IL1bmRNA=IL1b_syn                                   	1 IL1bmRNA = 1 IL1b_syn 	| 	# 	0              7              0        861.877      1727.2861              1              1              1 
+NFkB+MSK1=IL1rnmRNA_NFkB                            	1 NFkB + 1 MSK1 = 1 IL1rnmRNA_NFkB 	| 	# 	0              5              0       950.4208      1613.6688              1              1              1 
+IL1rnmRNA_NFkB=IL1rn_NFkB                           	1 IL1rnmRNA_NFkB = 1 IL1rn_NFkB 	| 	# 	0              7              0       952.3457      1727.2861              1              1              1 
+p38=MSK1                                            	1 p38 = 1 MSK1 	| 	# 	0              1              0      1121.7338      1349.2149              1              1              1 
+ERK=MSK1                                            	1 ERK = 1 MSK1 	| 	# 	0              1              0      1019.7159      1349.2149              1              1              1 
+p38=MSK2                                            	1 p38 = 1 MSK2 	| 	# 	0              1              0      1160.2311      1368.8041              1              1              1 
+p38=MK2                                             	1 p38 = 1 MK2 	| 	# 	0              1              0      1248.7749      1368.8041              1              1              1 
+ERK=p90Rsk_lps                                      	1 ERK = 1 p90Rsk_lps 	| 	# 	0              1              0       963.8949      1374.6809              1              1              1 
+MSK1+p90Rsk_lps=CREB                                	1 MSK1 + 1 p90Rsk_lps = 1 CREB 	| 	# 	0              1              0      1156.3814      1503.9694              1              1              1 
+JNK=c-JUN                                           	1 JNK = 1 cJun 	| 	# 	0              1              0        1389.29      1290.4474              1              1              1 
+JNK=ATF2                                            	1 JNK = 1 ATF2 	| 	# 	0              1              0      1354.6424      1331.5847              1              1              1 
+c-JUN+ATF2=AP1                                      	1 cJun + 1 ATF2 = 1 AP1 	| 	# 	0              1              0      1416.2381      1386.4344              1              1              1 
+NFkB=Ccl2/3/4/5/7mRNA                               	1 NFkB = 1 Ccl2/3/4/5/7mRNA 	| 	# 	0              5              0       994.6927      1601.9153              1              1              1 
+NFkB=Cxcl1/2/3mRNA                                  	1 NFkB = 1 Cxcl1/2/3mRNA 	| 	# 	0              5              0      1085.1614      1605.8332              1              1              1 
+Ccl2/3/4/5/7mRNA=Ccl2/3/4/5/7                       	1 Ccl2/3/4/5/7mRNA = 1 Ccl2/3/4/5/7 	| 	# 	0              7              0      1031.2651       1729.245              1              1              1 
+Cxcl-1/2/3mRNA=Cxcl-1/2/3                           	1 Cxcl1/2/3mRNA = 1 Cxcl1/2/3 	| 	# 	0              7              0      1119.8089      1725.3272              1              1              1 
+IRF3+NFkB+p300+CBP=IFNbmRNA                         	1 IRF3 + 1 NFkB + 1 p300 + 1 CBP = 1 IFNbmRNA 	| 	# 	0              5              0       715.5873       1533.038              1              1              1 
+IL13=IL13Ra2                                        	1 IL13 = 1 IL13Ra2 	| 	# 	0              1              0      1999.4722       173.8642              1              1              1 
+IL4Ra/IL2Ry+Jak3+!PP2A+!SHP1+!dum_Socs1_inh=Stat6   	1 IL4Ra/IL2Ry + 1 !PP2A + 1 !SHP1 + 1 Jak3 + 1 !dum_Socs1_inh = 1 Stat6 	| 	# 	0              1              0      2088.0159      1208.1728              1              1              1 
+IL4Ra/IL13Ra1+!PP2A+!SHP1+Jak2+!dum_Socs1_inh=Stat6 	1 IL4Ra/IL13Ra1 + 1 !PP2A + 1 !SHP1 + 1 Jak2 + 1 !dum_Socs1_inh = 1 Stat6 	| 	# 	0              1              0      2032.1949      1172.9123              1              1              1 
+IL4Ra/IL13Ra1+Tyk2+!PP2A+!SHP1+!dum_Socs1_inh=Stat6 	1 IL4Ra/IL13Ra1 + 1 Tyk2 + 1 !PP2A + 1 !SHP1 + 1 !dum_Socs1_inh = 1 Stat6 	| 	# 	0              1              0        2101.49      1172.9123              1              1              1 
+hk=p300                                             	1 hk = 1 p300 	| 	# 	0              0              0       394.0054      1436.3431              1              3              1 
+hk=CBP                                              	1 hk = 1 CBP 	| 	# 	0              0              0       389.1373      1482.0415              1              3              1 
+hk=Jak3                                             	1 hk = 1 Jak3 	| 	# 	0              0              0      1380.6086       319.4747              1              3              1 
+hk=Jak2                                             	1 hk = 1 Jak2 	| 	# 	0              0              0      1912.8551       293.8836              1              3              1 
+hk=Src                                              	1 hk = 1 Src 	| 	# 	0              0              0      2746.9243      1498.4929              1              3              1 
+IL4Ra/IL2Ry+Jak1+!dum_Socs1_inh=Fes                 	1 IL4Ra/IL2Ry + 1 Jak1 + 1 !dum_Socs1_inh = 1 Fes 	| 	# 	0              1              0      1756.9392       403.0576              1              1              1 
+IL4Ra/IL2Ry+Jak3+!dum_Socs1_inh=Fes                 	1 IL4Ra/IL2Ry + 1 Jak3 + 1 !dum_Socs1_inh = 1 Fes 	| 	# 	0              1              0      1737.6905       401.0987              1              1              1 
+Fes=IRS-1/2                                         	1 Fes = 1 IRS1/2 	| 	# 	0              1              0      1770.4132       493.1678              1              1              1 
+IRS1/2=PI3K                                         	1 IRS1/2 = 1 PI3K 	| 	# 	0              1              0      1772.3381         561.73              1              1              1 
+PI3K=PIP3                                           	1 PI3K = 1 PIP3 	| 	# 	0              1              0      1772.3381       640.0867              1              1              1 
+PIP3=PDK1                                           	1 PIP3 = 1 PDK1 	| 	# 	0              1              0       1774.263       712.5666              1              1              1 
+PDK1=PKC                                            	1 PDK1 = 1 PKC 	| 	# 	0              1              0      1733.8408       794.8412              1              1              1 
+PDK1+!PTEN=Akt1                                     	1 PDK1 + 1 !PTEN = 1 Akt1 	| 	# 	0              1              0      1676.0949       863.4033              1              1              1 
+PDK1=p70S6K                                         	1 PDK1 = 1 p70S6K 	| 	# 	0              1              0       1774.263       792.8823              1              1              1 
+PDK1=p90Rsk_il                                      	1 PDK1 = 1 p90Rsk_il 	| 	# 	0              1              0      1835.8586       794.8412              1              1              1 
+IFNAR+Jak1+!dum_Socs1_inh=Stat1                     	1 Jak1 + 1 IFNAR + 1 !dum_Socs1_inh = 1 Stat1 	| 	# 	0              1              0      2438.3414        988.774              1              1              1 
+IFNAR+Tyk2+!dum_Socs1_inh=Stat1                     	1 Tyk2 + 1 IFNAR + 1 !dum_Socs1_inh = 1 Stat1 	| 	# 	0              1              0      2471.0641       986.8151              1              1              1 
+IFNAR+Jak1+!dum_Socs3_inh=Stat3                     	1 Jak1 + 1 IFNAR + 1 !dum_Socs3_inh = 1 Stat3 	| 	# 	0              1              0      2626.9781       992.6919              1              1              1 
+IFNAR+Tyk2+!dum_Socs3_inh=Stat3                     	1 Tyk2 + 1 IFNAR + 1 !dum_Socs3_inh = 1 Stat3 	| 	# 	0              1              0      2659.7008       994.6508              1              1              1 
+Stat6=Ccl2/7mRNA_Stat6                              	1 Stat6 = 1 Ccl2/7mRNA_Stat6 	| 	# 	0              5              0      2068.7673      1596.0386              1              1              1 
+Stat6=Socs2mRNA                                     	1 Stat6 = 1 Socs2mRNA 	| 	# 	0              5              0      2149.6116      1596.0386              1              1              1 
+Stat6=Socs1mRNA                                     	1 Stat6 = 1 Socs1mRNA 	| 	# 	0              5              0      2245.8549      1545.1067              1              1              1 
+Ccl2/7mRNA_Stat6=Ccl2/7_Stat6                       	1 Ccl2/7mRNA_Stat6 = 1 Ccl2/7_Stat6 	| 	# 	0              7              0      2068.7673      1725.3272              1              1              1 
+Socs2mRNA=Socs2                                     	1 Socs2mRNA = 1 Socs2 	| 	# 	0              7              0      2149.6116      1725.3272              1              1              1 
+Stat1=Socs1mRNA                                     	1 Stat1 = 1 Socs1mRNA 	| 	# 	0              5              0      2305.5257      1521.5997              1              1              1 
+Stat3+Src=Socs3mRNA_Stat3                           	1 Stat3 + 1 Src = 1 Socs3mRNA_Stat3 	| 	# 	0              5              0        2742.47      1605.8332              1              1              1 
+Socs1mRNA=Socs1                                     	1 Socs1mRNA = 1 Socs1 	| 	# 	0              7              0      2334.3986      1727.2861              1              1              1 
+Ccl5mRNA_Stat1=Ccl5_Stat1                           	1 Ccl5mRNA_Stat1 = 1 Ccl5_Stat1 	| 	# 	0              7              0      2417.1678      1725.3272              1              1              1 
+!MK2=MK3                                            	1 !MK2 = 1 MK3 	| 	# 	0              1              0      1254.5495      1454.9965              1              1              1 
+IFNb_syn=IFNb_medium                                	1 IFNb_syn = 1 IFNb_medium 	| 	# 	0             10              0      4154.2786        65.1343              1              3              1 
+hk_inh+LPS=dum_DUSP1_inh                            	1 LPS + 1 hk_inh = 1 dum_DUSP1_inh 	| 	# 	0             15              0        607.378       2451.874              1              3              1 
+Stat6=Mrc1mRNA                                      	1 Stat6 = 1 Mrc1mRNA 	| 	# 	0              5              0      1995.6224      1597.9975              1              1              1 
+Stat6+CEBPb=Arg1mRNA                                	1 Stat6 + 1 CEBPb = 1 Arg1mRNA 	| 	# 	0              5              0      1907.0786      1533.3532              1              1              1 
+Arg1mRNA=Arg1                                       	1 Arg1mRNA = 1 Arg1 	| 	# 	0              7              0      1903.2289      1723.3682              1              1              1 
+DUSP1mRNA_Stat3=DUSP1_Stat3                         	1 DUSP1mRNA_Stat3 = 1 DUSP1_Stat3 	| 	# 	0              7              0      2580.7814      1725.3272              1              1              1 
+NFkB=DUSP1mRNA_NFkB                                 	1 NFkB = 1 DUSP1mRNA_NFkB 	| 	# 	0              5              0       775.2581      1603.8742              1              1              1 
+!MK2=TTP                                            	1 !MK2 = 1 TTP 	| 	# 	0              1              0      1535.5797      1568.6137              1              1              1 
+Stat1=Ccl5mRNA_Stat1                                	1 Stat1 = 1 Ccl5mRNA_Stat1 	| 	# 	0              5              0      2384.4451      1597.9975              1              1              1 
+hk_inh+LPS=dum_Socs1_inh                            	1 LPS + 1 hk_inh = 1 dum_Socs1_inh 	| 	# 	0             15              0      3627.1245       2890.126              1              3              1 
+hk_inh+LPS=dum_Socs3_inh                            	1 LPS + 1 hk_inh = 1 dum_Socs3_inh 	| 	# 	0             15              0      4567.5413      2883.8202              1              3              1 
+hk_medium+LPS=IL10_medium                           	1 LPS + 1 hk_medium = 1 IL10_medium 	| 	# 	0             15              0      4300.7102        39.9112              1              3              1 
+hk_medium+LPS=IFNb_medium                           	1 LPS + 1 hk_medium = 1 IFNb_medium 	| 	# 	0             15              0      4157.5326        68.2872              1              3              1 
+!hk=PP2A                                            	1 !hk = 1 PP2A 	| 	# 	0              1              0      3267.9581       757.3599              1              3              1 
+!hk=SHP1                                            	1 !hk = 1 SHP1 	| 	# 	0              1              0      1661.3362       908.0698              1              3              1 
+Stat3=Socs1mRNA                                     	1 Stat3 = 1 Socs1mRNA 	| 	# 	0              5              0      2498.0122      1507.8873              1              1              1 
+Mrc1mRNA=Mrc1                                       	1 Mrc1mRNA = 1 Mrc1 	| 	# 	0              7              0      1989.8478      1723.3682              1              1              1 
+IkBa+!dum_IkBa_inh+!MK3+miR155=NFkB                 	1 !MK3 + 1 miR155 + 1 !dum_IkBa_inh + 1 IkBa = 1 NFkB 	| 	# 	0              1              0       902.2992      1386.6108              1              1              1 
+!hk=PTEN                                            	1 !hk = 1 PTEN 	| 	# 	0              0              0      1479.5935       632.9619              1              3              1 
+TAK1=TPL2                                           	1 TAK1 = 1 TPL2 	| 	# 	0              1              0      1050.5138       949.5957              1              1              1 
+TRAF6=TPL2                                          	1 TRAF6 = 1 TPL2 	| 	# 	0              1              0      1038.9646       892.7871              1              1              1 
+PDK1+!PTEN=Akt2                                     	1 PDK1 + 1 !PTEN = 1 Akt2 	| 	# 	0              1              0      1626.0484       869.2801              1              1              1 
+!miR155=CEBPb                                       	1 !miR155 = 1 CEBPb 	| 	# 	0              1              0      1781.9624      1257.1458              1              1              1 
+!Akt1=miR155                                        	1 !Akt1 = 1 miR155 	| 	# 	0              1              0      1691.4938       978.9795              1              1              1 
+TLR4RC=coSignal                                     	1 TLR4RC = 1 coSignal 	| 	# 	0              1              0      1462.4349       788.9644              1              1              1 
+Akt2+coSignal=miR155                                	1 Akt2 + 1 coSignal = 1 miR155 	| 	# 	0              1              0      1633.7478       996.6097              1              1              1 
+IL10R=Arg1mRNA                                      	1 IL10R = 1 Arg1mRNA 	| 	# 	0              5              0      1799.2862      1500.0516              1              1              1 
+TLR4RC=PI3K                                         	1 TLR4RC = 1 PI3K 	| 	# 	0              1              0      1658.7711       600.9083              1              1              1 
+!TTP+IL10mRNA_MK2=IL10_syn_MK2                      	1 !TTP + 1 IL10mRNA_MK2 = 1 IL10_syn_MK2 	| 	# 	0              7              0      1391.2149      1727.2861              1              1              1 
+IL10_syn_MK2=IL10_medium                            	1 IL10_syn_MK2 = 1 IL10_medium 	| 	# 	0             10              0      1341.1684      1856.5746              1              3              1 
+Stat3=IL1rnmRNA_Stat                                	1 Stat3 = 1 IL1rnmRNA_Stat 	| 	# 	0              5              0      2526.8851      1543.1478              1              1              1 
+Stat1=IL1rnmRNA_Stat                                	1 Stat1 = 1 IL1rnmRNA_Stat 	| 	# 	0              5              0      2438.3414      1545.1067              1              1              1 
+IL1rnmRNA_Stat=IL1rn_Stat                           	1 IL1rnmRNA_Stat = 1 IL1rn_Stat 	| 	# 	0              7              0      2496.0873      1723.3682              1              1              1 
+Socs3mRNA_MK2=Socs3_MK2                             	1 Socs3mRNA_MK2 = 1 Socs3_MK2 	| 	# 	0              7              0      1472.0592      1731.2039              1              1              1 
+MK2=IL10mRNA_MK2                                    	1 MK2 = 1 IL10mRNA_MK2 	| 	# 	0              5              0      1358.4922      1601.9153              1              1              1 
+MK2=Socs3mRNA_MK2                                   	1 MK2 = 1 Socs3mRNA_MK2 	| 	# 	0              5              0       1431.637      1597.9975              1              1              1 
+!hk=RIP3                                            	1 !hk = 1 RIP3 	| 	# 	0             1             0      823.3797      879.0746             1             3             1 
+Socs1=dum_Socs1_inh                                 	1 Socs1 = 1 dum_Socs1_inh 	| 	# 	0             15              0      2328.6241      1852.6568              1              3              1 
+DUSP1_NFkB=dum_DUSP1_inh                            	1 DUSP1_NFkB = 1 dum_DUSP1_inh 	| 	# 	0             15              0       742.5354      1846.7801              1              3              1 
+DUSP1_Stat3=dum_DUSP1_inh                           	1 DUSP1_Stat3 = 1 dum_DUSP1_inh 	| 	# 	0             15              0      2555.7581      1846.7801              1              3              1 
+Socs3_MK2=dum_Socs3_inh                             	1 Socs3_MK2 = 1 dum_Socs3_inh 	| 	# 	0             15              0      1443.1862      1838.9444              1              3              1 
+Socs3_Stat3=dum_Socs3_inh                           	1 Socs3_Stat3 = 1 dum_Socs3_inh 	| 	# 	0             15              0      2688.5738      1842.8622              1              3              1 
+hk_inh+IL4=dum_Socs1_inh                            	1 IL4 + 1 hk_inh = 1 dum_Socs1_inh 	| 	# 	0             15              0      2290.1268      1838.9444              1              3              1 
+IL10_syn_Stat3=IL10_medium                          	1 IL10_syn_Stat3 = 1 IL10_medium 	| 	# 	0             12              0      2840.6381        62.2059              1              3              1 
+IkBamRNA=IkBa_syn                                   	1 IkBamRNA = 1 IkBa_syn 	| 	# 	0              7              0       690.5641       1726.955              1              1              1 
+NFkB=IkBamRNA                                       	1 NFkB = 1 IkBamRNA 	| 	# 	0              5              0       688.6392      1600.3153              1              1              1 
+IkBa_syn=dum_IkBa_inh                               	1 IkBa_syn = 1 dum_IkBa_inh 	| 	# 	0             15              0       615.4943      1372.7596              1              3              1 
+IKK=IkBa                                            	1 IKK = 1 IkBa 	| 	# 	0              1              0       904.2241       1137.289              1              1              1 
+hk_inh+LPS=dum_IkBa_inh                             	1 LPS + 1 hk_inh = 1 dum_IkBa_inh 	| 	# 	0             15              0       732.9111      1289.6523              1              3              1 

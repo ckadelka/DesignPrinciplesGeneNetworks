@@ -1,0 +1,8 @@
+mir_17_92 = Myc OR E2F
+Myc = E2F
+Cdk2_CyclinE = NOT p27 AND (Myc OR E2F OR Cdk2_CyclinE OR Cdc25a)
+P27 = p27 AND NOT Cdk2_CyclinE
+pRb = NOT Cdk2_CyclinE AND NOT Cdk4_CyclinD AND pRb
+Cdk4_CyclinD = 0
+Cdc25a = Myc OR E2F OR Cdk2_CyclinE
+E2F = NOT mir_17_92 AND NOT pRb AND (Myc OR E2F)

@@ -1,0 +1,3 @@
+Fak	p190RhoGEF
+0	0
+1	1

@@ -1,0 +1,4 @@
+Snail	=	Input AND NOT (Snail AND mu34)
+mu34	=	NOT Snail AND NOT Zeb
+Zeb	=	(NOT mu200) OR (Snail AND Zeb)
+mu200	=	(NOT Snail) OR (Zeb AND mu200)

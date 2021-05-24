@@ -1,0 +1,10 @@
+Glucose = NOT Glucose
+Circ_FA = NOT Circ_FA
+Pyruvate = Glucose AND NOT Circ_FA
+PDC = NOT PDK
+Acetyl_COA = (Fatty_acids AND NOT Malonyl_CoA) OR (PDC AND Pyruvate)
+Citrate = Acetyl_COA
+AMPK = NOT Acetyl_COA
+Malonyl_CoA = Citrate AND NOT AMPK
+Fatty_acids = Circ_FA OR (Malonyl_CoA AND Citrate)
+PDK = NOT Pyruvate AND (Acetyl_COA OR Fatty_acids)

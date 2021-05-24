@@ -1,0 +1,5 @@
+GRK	alpha_q_R	Palpha_q_R
+0	0	0
+0	1	0
+1	0	0
+1	1	1

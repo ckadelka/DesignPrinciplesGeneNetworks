@@ -1,0 +1,8 @@
+lac_mRNA = ( lac_operon ) 
+lactose_breakdown = ( ( lac_enzymes  ) AND NOT ( betaGal_LOF_mutation  ) ) 
+lac_repressor =  NOT ( ( allolactose ) )
+allolactose = ( lactose ) 
+CAP = ( cAMP ) 
+lac_operon = ( ( CAP  ) AND NOT ( lac_repressor  ) ) 
+cAMP =  NOT ( ( glucose )  OR ( lactose_breakdown ) )
+lac_enzymes = ( lac_mRNA ) 

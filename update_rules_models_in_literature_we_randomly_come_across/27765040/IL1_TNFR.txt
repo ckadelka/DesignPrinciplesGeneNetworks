@@ -1,0 +1,3 @@
+IL1_TNF	IL1_TNFR
+0	0
+1	1
