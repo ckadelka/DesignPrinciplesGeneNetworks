@@ -57,6 +57,14 @@ from matplotlib import colors as mcolors
 
 ## 0) Basics
 
+#Get the number of variables in an update function from its f representation.
+#0 when length of f is 0, log base 2 of length of f otherwise
+def n_from_f(f):
+    if len(f) > 0:
+        return int(np.log2(len(f)))
+    else:
+        return 0
+
 def tobin(x):
     '''returns the binary representation (in array form) of a decimal number'''
     return tobin(x//2) + [x%2] if x > 1 else [x]
@@ -123,8 +131,8 @@ def edgelist_to_I(edgelist):
     return I,var
 
 def bool_to_poly(f,x=[]):
-    len_f = len(f)
-    n=int(np.log2(len_f))
+    n=n_from_f(f)
+
     if x==[]: #to reduce run time, this should be calculated once and then passed as argument
         x = list(itertools.product([0, 1], repeat = n))
     num_values = 2**n   
@@ -140,8 +148,8 @@ def bool_to_poly(f,x=[]):
     
 def bool_to_poly_v2(f,I,variables,constants,x=[]):
     variables_and_constants  = list(variables)+list(constants)
-    len_f = len(f)
-    n=int(np.log2(len_f))
+    n=n_from_f(f)
+
     if x==[]: #to reduce run time, this should be calculated once and then passed as argument
         x = list(itertools.product([0, 1], repeat = n))
     num_values = 2**n   
@@ -154,12 +162,12 @@ def bool_to_poly_v2(f,I,variables,constants,x=[]):
         return ' + '.join(text)
     else:
         return '0'
-            
+
 ## 1) Methods to analyze Boolean functions
 
 def is_degenerated(F):
-    len_F = len(F)
-    n=int(np.log2(len_F))
+    n=n_from_f(F)
+
     for i in range(n):
         dummy_add=(2**(n-1-i))
         dummy=np.arange(2**n)%(2**(n-i))//dummy_add
@@ -178,8 +186,9 @@ def is_degenerated(F):
 def get_essential_variables(F):
     if len(F)==0:
         return []
-    len_F = len(F)
-    n=int(np.log2(len_F))
+    
+    n=n_from_f(F)
+
     essential_variables  = list(range(n))
     for i in range(n):
         dummy_add=(2**(n-1-i))
@@ -203,8 +212,7 @@ def is_constant(F):
     return sum(F) in [0,len(F)]
 
 def get_symmetry_groups(F,bool_list=[]):
-    len_F = len(F)
-    n=int(np.log2(len_F))
+    n=n_from_f(F)
     if bool_list==[] or bool_list.shape[0]!=len_F:
         bool_list = np.array(list(itertools.product([0, 1], repeat=n)))
     symmetry_groups = []
@@ -321,6 +329,7 @@ def binom(n,k):
 def get_canalizing_strength(F,bool_list=[]):
     nfloat = np.log2(len(F))
     n = int(nfloat)
+
     assert abs(n-nfloat)<1e-10, "F needs to be of length 2^n for some n>1"
     assert n>1, "Canalizing strength is only defined for Boolean functions with n>1 inputs"
     res = []
@@ -407,7 +416,9 @@ def is_k_canalizing_return_inputs_outputs_corefunction_order(F,k,n,can_inputs=np
 
 #def get_layers_directly(F,can_inputs=np.array([],dtype=int),can_outputs=np.array([],dtype=int),can_order=np.array([],dtype=int),variables=[]):
 def get_layers_directly(F):
-    n = int(np.log2(len(F)))
+
+    n = n_from_f(F)
+
     can_inputs=np.array([],dtype=int)
     can_outputs=np.array([],dtype=int)
     can_order=np.array([],dtype=int)
@@ -459,7 +470,7 @@ def get_layers_directly(F):
     return (can_inputs,can_outputs,F,can_order)
     
 def get_layers_directly_v2(F,can_inputs=np.array([],dtype=int),can_outputs=np.array([],dtype=int),can_order=np.array([],dtype=int),variables=[],depth=0,number_layers=0):
-    n = int(np.log2(len(F)))
+    n = n_from_f(F)
     w = sum(F)
     if w == 0 or w == 2**n: #constant F
         return (depth,number_layers,can_inputs,can_outputs,F,can_order)
@@ -596,12 +607,12 @@ def get_all_canalizing_variables_of_boolean_function(rule,or_symbol = 'or', and_
 ## 2) Put everything together to obtain canalizing depth, layer structure, canalized outputs, canalizing inputs as well as core function (could also calculate canalizing variables in future versions but I don't see a need)
 
 def get_canalizing_depth_inputs_outputs_corefunction(F):
-    n = int(np.log2(len(F)))
+    n = n_from_f(F)
     (NESTED_CANALIZING,can_inputs,can_outputs,corefunction) = is_k_canalizing_return_inputs_outputs_corefunction(F,n,n)
     return (n,len(can_inputs),can_inputs,can_outputs,corefunction)
    
 def get_canalizing_depth_inputs_outputs_corefunction_order(F,variables = []):
-    n = int(np.log2(len(F)))
+    n = n_from_f(F)
     (NESTED_CANALIZING,can_inputs,can_outputs,corefunction,can_order) = is_k_canalizing_return_inputs_outputs_corefunction_order(F,n,n,variables=variables)
     return (n,len(can_inputs),can_inputs,can_outputs,corefunction,can_order)    
 
@@ -1137,7 +1148,7 @@ def average_sensitivity_old_wrong(F,nsim=10000):
     #equals Derrida value D(F,1) if all n update rules in F are chosen from the same sampling space
     if type(F)==list:
         F = np.array(F)
-    n = int(np.log2(len(F)))
+    n = n_from_f(F)
     num_values = 2**n
     X = np.random.randint(num_values,size=nsim)
     add = 2**np.random.randint(n, size=nsim)
@@ -1148,7 +1159,7 @@ def average_sensitivity(F,nsim=10000,EXACT=False,NORMALIZED=True):
     #equals Derrida value D(F,1) if all n update rules in F are chosen from the same sampling space
     if type(F)==list:
         F = np.array(F)
-    n = int(np.log2(len(F)))
+    n = n_from_f(F)
     num_values = 2**n
     s = 0
     if EXACT:
@@ -1179,7 +1190,7 @@ def average_sensitivity(F,nsim=10000,EXACT=False,NORMALIZED=True):
 
 def absolute_bias(F,n=None):
     if n==None:
-        n = int(np.log2(len(F)))
+        n = n_from_f(F)
     return abs(sum(F)*1./2**(n-1)-1)
 
 def num_of_attractors(F, I, N, nsim = 500, EXACT = False, bool_list = []):
@@ -1292,7 +1303,10 @@ def adjacency_matrix(I,constants=[],IGNORE_SELFLOOPS=False,IGNORE_CONSTANTS=True
         return adjacency_matrix(I,[],IGNORE_CONSTANTS=True)
 
 def is_monotonic(F,GET_DETAILS=False):
-    n=int(np.log2(len(F)))
+    n=0
+    if len(F) > 0:
+        n=n_from_f(F)
+
     F = np.array(F)
     monotonic = []
     for i in range(n):
