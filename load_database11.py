@@ -50,6 +50,7 @@ except:
 
 
 import pickle
+import traceback
 
 def find_all_indices(array,el):
     res=[]
@@ -68,9 +69,12 @@ def text_to_BN(folder,textfile,separator_var_func="=",original_not="NOT",origina
 
     f = open(folder+textfile,'r')
     text = f.read()
+    f.close()
+    return string_to_BN(text, separator_var_func=separator_var_func, original_not=original_not, original_and=original_and, original_or=original_or, new_not=new_not, new_and=new_and, new_or=new_or, max_degree=ax_degree, TREATMENT_OF_CONSTANTS=1, max_n=max_n)
+
+def string_to_BN(text,separator_var_func="=",original_not="NOT",original_and="AND",original_or="OR",new_not=" not ",new_and=" and ",new_or=" or ",max_degree=15,TREATMENT_OF_CONSTANTS=1,max_n=10000):
     text = text.replace('\t',' ').replace('(',' ( ').replace(')',' ) ')
     tvec = text.splitlines()
-    f.close()
     
     #Deleting empty lines
     while '' in tvec:
@@ -144,6 +148,7 @@ def text_to_BN(folder,textfile,separator_var_func="=",original_not="NOT",origina
         
     return F, I, degree, var, constants
 
+
 def load_tabular_model(folder,textfile,max_n=10000,TREATMENT_OF_CONSTANTS=1):
     f = open(folder+textfile,'rb')
     [F, I, var, constants] = pickle.load(f)
@@ -188,6 +193,7 @@ def load_database(folders,separator_var_func="=",original_not="NOT",original_and
                     models_not_loaded.append(textfile)
                     print()
                     print(textfile,'failed')
+                    #traceback.print_exc()
                     print()
                     continue
             else:
