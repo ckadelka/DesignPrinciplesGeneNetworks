@@ -1,0 +1,7 @@
+BR = StimBR OR BRBiosynth
+BRI1-BAK1 = BR
+BIN2 = NOT BRI1-BAK1
+BES1/BZR2 = NOT BIN2
+BRREs = BES1/BZR2 OR BZR1
+BRBiosynthesis = NOT BZR1
+Elongation = BRREs

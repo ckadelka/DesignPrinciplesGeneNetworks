@@ -1,0 +1,8 @@
+pmar1 = NOT hesC
+hesC = NOT pmar1
+delta = ets1 AND NOT hesC
+ets1 = NOT hesC
+alx1 = ( alx1 OR ets1 ) AND NOT hesC
+gcm = ( gcm OR aNotch ) AND NOT alx1
+aNotch = [neighboring delta]
+hox11/13b = NOT aNotch
