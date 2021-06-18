@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-d", help="Result Directory")
+parser.add_argument("-l", help="Selected Length")
+parser.add_argument("-t", help="Selected Types")
 args = parser.parse_args()
 
 attrs = []
@@ -26,8 +28,8 @@ for fname in os.listdir(args.d):
             if line.startswith("loop lengths"):	
                 lengths += [ast.literal_eval(i) for i in line.split('\t')[1:]]
 
-selected_l = 4
-selected_t = [0,1,2,3,4,5,6,7,8]
+selected_l = int(args.l)
+selected_t = [int(i) for i in args.t.split(',')]
 loop = []
 for i in range(len(lengths)):
     ls = lengths[i]
