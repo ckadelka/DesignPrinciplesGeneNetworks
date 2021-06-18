@@ -367,15 +367,14 @@ update(F, I, N, X):
 		list - Representing the activity of each node after an update step. 0 for inactive, 1 for active.
 
 average_sensitivity(F, nsim=10000, EXACT=False, NORMALIZED=True):
-	Given a list or numpy array of update rules, return their average sensitivity. This equals 
-		Derrida value D(F,1) if all n update rules in F are chosen from the same sampling space.
+	Given a fucntion represented in the form of the right side of a truth table, return its average sensitivity.
 	params:
-		2d list F - A list of lists where each sub-list represents a node's update function
+		list F - A representation of a function, in the format of the list at index 0 in the tuple returned by f_from_expression(expr)
 		(optional) nsim - The number of simulations to run if EXACT is False. Higher values increase precision and runtime. (default: 10000)
 		(optional) EXACT - Whether the exact average sensitivity should be computed rather than running simulations. Setting this to True
-			will cause the function to run in exponential time with regards to the nubmer of update rules. (default: False)
+			will cause the function to run in exponential time with regard to the number of variables in F. (default: False)
 		(optional) NORMALIZED - Whether the value returned should be normilized by dividing by the number of
-			update functions in F. (default: True)
+			varaibles in F. (default: True)
 	return:
 		float - The average sensitivity of F, normalized to the number of nodes in F if NORMALIZED is True.
 
@@ -413,6 +412,63 @@ num_of_attractors_v2(F, I, N, nb=500):
 		2d list - Each sub-list represents an attractor.
 		int - The total number of attractors
 		list - List of integers representing the size of each basin
+		
+basin_size_largest(basin_sizes):
+	Returns the largest basin size divided by the sum of all basin sizes in the list.
+	params:
+		list basin_sizes - A list of numbers
+	return:
+		float - The largest number in the list divided by the sum of all numbers in the list
+		
+entropy(basin_sizes): <explain what entropy means, not just what it is>??
+	For each element in basin_sizes, divide that element by the sum of all elements, then the corresponding output element is
+		the negative natural logarithm of that number times that number.
+	params:
+		list basin_sizes - A list of numbers
+	return:
+		list - Each element in this list is -ln(S/total)*S/total where S is the corresponding input element and total is the sum of
+			all elements in the input list
+
+d(x, y):
+	Returns a positive integer if numpy arrays x and y are different, 0 otherwise.
+	params:
+		numpy array x - first array to compare
+		numpy array y - second array to compare
+	return:
+		int - positive if x and y are different, 0 otherwise.
+		
+derrida_value(F, I, N, m, nsim=500):
+	Caluclate the derrida value of a network. ?? m = size of preturbation
+	
+adjacency_matrix(I,constants=[],IGNORE_SELFLOOPS=False,IGNORE_CONSTANTS=True):
+	Get an adjacency matrix representation of input adjacency list I.
+	params:
+		2d list I - the adjacency list to convert to an adjacency matrix.
+		(optional) list constants - 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

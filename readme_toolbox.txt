@@ -367,23 +367,22 @@ update(F, I, N, X):
 		list - Representing the activity of each node after an update step. 0 for inactive, 1 for active.
 
 average_sensitivity(F, nsim=10000, EXACT=False, NORMALIZED=True):
-	Given a list or numpy array of update rules, return their average sensitivity. This equals 
-		Derrida value D(F,1) if all n update rules in F are chosen from the same sampling space.
+	Given a fucntion represented in the form of the right side of a truth table, return its average sensitivity.
 	params:
-		2d list F - A list of lists where each sub-list represents a node's update function
+		list F - A representation of a function, in the format of the list at index 0 in the tuple returned by f_from_expression(expr)
 		(optional) nsim - The number of simulations to run if EXACT is False. Higher values increase precision and runtime. (default: 10000)
 		(optional) EXACT - Whether the exact average sensitivity should be computed rather than running simulations. Setting this to True
-			will cause the function to run in exponential time with regards to the nubmer of update rules. (default: False)
+			will cause the function to run in exponential time with regard to the number of variables in F. (default: False)
 		(optional) NORMALIZED - Whether the value returned should be normilized by dividing by the number of
-			update functions in F. (default: True)
+			varaibles in F. (default: True)
 	return:
 		float - The average sensitivity of F, normalized to the number of nodes in F if NORMALIZED is True.
 
 absolute_bias(F, n=None):
-	Given a list or numpy array of update rules, return the absolute bias of these rules.
+	Given a fucntion represented in the form of the right side of a truth table, return the absolute bias of these rules.
 	params:
-		2d list F - A list of lists where each sub-list represents a node's update function
-		(optional) n - The number of nodes in F. If None, it is calculated from the length of F. (default: None)
+		list F - A representation of a function, in the format of the list at index 0 in the tuple returned by f_from_expression(expr)
+		(optional) n - The number of variables in F. If None, it is calculated from the length of F. (default: None)
 	return:
 		float - the absolute bias of F
 	

@@ -707,7 +707,9 @@ def eval_expr(expr, x):
         if token == '':
             continue
 
-        if not token in operators:
+        if token.isdigit():
+            val_stack.append(int(token))
+        elif not token in operators:
             val = x[int(token[2:-1])]
             val_stack.append(val)
         elif token == '(':
@@ -1290,16 +1292,17 @@ def derrida_value(F, I, N, m, nsim = 500):
     return total*1./nsim
 
 def adjacency_matrix(I,constants=[],IGNORE_SELFLOOPS=False,IGNORE_CONSTANTS=True):
-    if not IGNORE_CONSTANTS:
-        return adjacency_matrix(I,IGNORE_SELFLOOPS=IGNORE_SELFLOOPS)
     n = len(I)
     n_constants = len(constants)
-    m = np.zeros((n-n_constants,n-n_constants),dtype=int)
-    for i,regulators in enumerate(I):
-        for j in regulators:
-            if j<n-n_constants and (IGNORE_SELFLOOPS==False or i!=j):
-                m[j,i] = 1
-    return m
+    if IGNORE_CONSTANTS:
+        m = np.zeros((n-n_constants,n-n_constants),dtype=int)
+        for i,regulators in enumerate(I):
+            for j in regulators:
+                if j<n-n_constants and (IGNORE_SELFLOOPS==False or i!=j):
+                    m[j,i] = 1
+        return m
+    else:
+        return adjacency_matrix(I,[],IGNORE_CONSTANTS=True)
 
 def is_monotonic(F,GET_DETAILS=False):
     n=0
