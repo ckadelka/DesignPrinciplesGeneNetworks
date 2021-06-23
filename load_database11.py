@@ -136,6 +136,8 @@ def string_to_BN(text,separator_var_func="=",original_not="NOT",original_and="AN
             for j in range(2**degree[i]):
                 x = X[j]
                 f = np.append(f,can.eval_expr(tvec_mod[i], x)%2)
+        else:
+            raise Exception("[WARN] %d.th degree=%d is grater than max_degree=%d"%(i,degree[i],max_degree))
 
         F.append(f)
         
