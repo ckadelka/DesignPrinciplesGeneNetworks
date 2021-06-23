@@ -7,12 +7,6 @@ import canalizing_function_toolbox_v1_9 as can
 import networkx as nx
 import load_database11 as db
 
-color_unknown = [0.5,0.5,0.5]
-color_incoh = [0.7,0.7,1]
-color_coh = [1,0.7,0.7]
-
-plt.rcParams.update({'font.size': 16})
-
 ## load the database, choose low max_n for quick results and to only look at small models
 #folders = ['mesih/']
 folders = ['update_rules_cell_collective/', 'update_rules_models_in_literature_we_randomly_come_across/']
@@ -86,25 +80,22 @@ attr = []
 for i in range(len(Fs)):
     F = Fs[i]
     I = Is[i]
-    degree = degrees[i]
-    #a = can.num_of_attractors(F,I,len(F),EXACT=True)[0]
-    try:
-        a = can.num_of_attractors(F,I,len(F))[0]
-        avg = 0
-        for j in a:
-            if type(j) == int:
-                avg += 1
-            else:
-                avg += len(j)
-        avg = avg/len(a)
-    except:
-        avg = -1
-    attr.append(avg)
+    attr.append(len(can.num_of_attractors_v2(F,I,len(F))[0]))
 
 for k in range(max_loop): 
     f,ax = plt.subplots()
     ax.scatter(attr,nr_loops[k],alpha=0.5,label='%i-loops' % (k+1))
     ax.set_ylabel('avg attr size in %i-loops' % (k+1))
     plt.tight_layout()
-    plt.savefig('total_avg_attr_%iloops_N%i.pdf' % (k+1,N))
+    plt.savefig('total_avg_attr_%iloops_N%i_v2.pdf' % (k+1,N))
 
+import scipy.stats as stats
+vec = [attr,nr_loops[3]]
+len_vec = len(vec)
+spearman = np.ones((len_vec,len_vec))
+for i in range(len_vec):
+    for j in range(i+1,len_vec):
+        spearman[i,j] = stats.spearmanr(vec[i],vec[j])[0]
+        spearman[j,i] = spearman[i,j]   
+
+print(spearman)
