@@ -10,22 +10,16 @@ import analysis_lib as analysis
 version = '01'
 output_folder = 'results/'
 
-try:
-    filename = sys.argv[0]
-    SLURM_ID = int(sys.argv[1])
-except:
-    filename = ''
-    SLURM_ID = 1
 
-if len(sys.argv)>2:
-    nsim = int(sys.argv[2])
-else:
-    nsim = 100
+filename = sys.argv[0]
+SLURM_ID = int(sys.argv[1])
+    
+nsim = 10000
 
 
 #1) define parameters
 N = 20
-n = 6
+n = 2
 k = n
 
 #Helper functions
