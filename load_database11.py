@@ -61,7 +61,7 @@ def find_all_indices(array,el):
         raise ValueError('The element is not in the array at all')
     return res
 
-def text_to_BN(folder,textfile,separator_var_func="=",original_not="NOT",original_and="AND",original_or="OR",new_not=" not ",new_and=" and ",new_or=" or ",max_degree=15,TREATMENT_OF_CONSTANTS=1,max_n=10000):
+def text_to_BN(folder,textfile,separator_var_func="=",original_not="NOT",original_and="AND",original_or="OR",new_not=" not ",new_and=" and ",new_or=" or ",max_degree=15,TREATMENT_OF_CONSTANTS=1,max_n=10000,DONT_LOAD_IFMAX_DEGREE=False):
     '''TREATMENT_OF_CONSTANTS: Ternary choice, 
     0: constants are not added to the BN, yields a BN that cannot be dynamically evaluated and causes errors unless only the degree distribution and update rules are studied,
     1: constants are added as self-regulatory nodes into the network, which is then by definition not strongly-connected,
@@ -70,9 +70,9 @@ def text_to_BN(folder,textfile,separator_var_func="=",original_not="NOT",origina
     f = open(folder+textfile,'r')
     text = f.read()
     f.close()
-    return string_to_BN(text, separator_var_func=separator_var_func, original_not=original_not, original_and=original_and, original_or=original_or, new_not=new_not, new_and=new_and, new_or=new_or, max_degree=max_degree, TREATMENT_OF_CONSTANTS=1, max_n=max_n)
+    return string_to_BN(text, separator_var_func=separator_var_func, original_not=original_not, original_and=original_and, original_or=original_or, new_not=new_not, new_and=new_and, new_or=new_or, max_degree=max_degree, TREATMENT_OF_CONSTANTS=1, max_n=max_n, DONT_LOAD_IFMAX_DEGREE=DONT_LOAD_IFMAX_DEGREE)
 
-def string_to_BN(text,separator_var_func="=",original_not="NOT",original_and="AND",original_or="OR",new_not=" not ",new_and=" and ",new_or=" or ",max_degree=15,TREATMENT_OF_CONSTANTS=1,max_n=10000):
+def string_to_BN(text,separator_var_func="=",original_not="NOT",original_and="AND",original_or="OR",new_not=" not ",new_and=" and ",new_or=" or ",max_degree=15,TREATMENT_OF_CONSTANTS=1,max_n=10000,DONT_LOAD_IFMAX_DEGREE=False):
     text = text.replace('\t',' ').replace('(',' ( ').replace(')',' ) ')
     tvec = text.splitlines()
     
@@ -136,7 +136,7 @@ def string_to_BN(text,separator_var_func="=",original_not="NOT",original_and="AN
             for j in range(2**degree[i]):
                 x = X[j]
                 f = np.append(f,can.eval_expr(tvec_mod[i], x)%2)
-        else:
+        elif DONT_LOAD_IFMAX_DEGREE:
             raise Exception("[WARN] %d.th degree=%d is grater than max_degree=%d"%(i,degree[i],max_degree))
 
         F.append(f)
@@ -169,7 +169,7 @@ def load_tabular_model(folder,textfile,max_n=10000,TREATMENT_OF_CONSTANTS=1):
     return F, I, degree, var, constants
     
 
-def load_database(folders,separator_var_func="=",original_not="NOT",original_and="AND",original_or="OR",new_not=" not ",new_and=" and ",new_or=" or ",max_degree=15,max_n=10000):
+def load_database(folders,separator_var_func="=",original_not="NOT",original_and="AND",original_or="OR",new_not=" not ",new_and=" and ",new_or=" or ",max_degree=15,max_n=10000,DONT_LOAD_IFMAX_DEGREE=False):
     Fs,Is,degrees,variabless,constantss,degrees_essential = [],[],[],[],[],[]
     models_loaded,models_not_loaded = [],[]
     
@@ -189,7 +189,7 @@ def load_database(folders,separator_var_func="=",original_not="NOT",original_and
             elif fname.endswith('.txt'):
                 try:
                     textfile = fname
-                    F,I,degree,variables, constants = text_to_BN(folder,textfile,max_degree=max_degree,max_n=max_n)
+                    F,I,degree,variables, constants = text_to_BN(folder,textfile,max_degree=max_degree,max_n=max_n,DONT_LOAD_IFMAX_DEGREE=DONT_LOAD_IFMAX_DEGREE)
                     print(textfile,'converted')
                 except:
                     models_not_loaded.append(textfile)
