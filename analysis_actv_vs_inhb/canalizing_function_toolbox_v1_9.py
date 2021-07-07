@@ -55,8 +55,6 @@ import pandas as pd
 from collections import defaultdict
 from matplotlib import colors as mcolors
 
-import random
-
 ## 0) Basics
 
 #Get the number of variables in an update function from its f representation.
@@ -760,48 +758,6 @@ def apply_operator(operator, val1, val2):
     else:
         print("err, unrecognized operator: ", operator)
 
-#change an inhibitor to opposite activator or vice-versa
-def swap_var_type(f, var):
-    n = n_from_f(f)
-    step_size = pow(2, n-var-1)
-    flen = len(f)
-    for i in range(int(flen/step_size/2)):
-        for j in range(step_size):
-            idx = i*step_size*2 + j
-            temp = f[idx]
-            f[idx] = f[idx+step_size]
-            f[idx+step_size] = temp
-    return f
-
-#Given F and I, return a new F where the proportion of activation in all activating and inhibiting connections is proportion (rounded).
-def set_activation_proportion(F, I, ns, proportion):
-    #classify all connections as activation, inhibition, or neither
-    original_var_types = [variable_types(f) for f in F]
-    increasing_counts = [var_type.count('increasing') for var_type in original_var_types]
-    decreasing_counts = [var_type.count('decreasing') for var_type in original_var_types]
-    monotonic_counts = [increasing_counts[i] + decreasing_counts[i] for i in range(len(increasing_counts))]
-
-    monotonic_indicies = []
-    for i,node in enumerate(original_var_types):
-        for j,variable_type in enumerate(node):
-            if variable_type == 'increasing' or variable_type == 'decreasing':
-                monotonic_indicies.append([i, j])
-    
-    total_monotonic = len(monotonic_indicies)
-
-    #determine how many need to be activation and how many need to be inhibition
-    new_increasing_count = round(total_monotonic * proportion)
-    #randomly assign this many nodes to be activation, and the rest to be inhibition
-    random.shuffle(monotonic_indicies)
-
-    for i,index in enumerate(monotonic_indicies):
-        node = index[0]
-        var = index[1]
-        if (original_var_types[node][var] == 'decreasing') == (i < new_increasing_count):
-            F[node] = swap_var_type(F[node], var)
-    
-    return F
-
 
 def random_function(n):
     return np.random.randint(2, size = 2**n)    
@@ -824,13 +780,27 @@ def is_monotonic2(F):
         elif min_diff==-1 and max_diff==1:
             monotonic.append(-2)
         elif min_diff>=0 and max_diff==1:
-            monotonic.append(1)
+            monotonic.append(1)            
         elif min_diff==-1 and max_diff<=0:
-            monotonic.append(0)
+            monotonic.append(0)   
     #print(monotonic)
     #       increasing          decreasing          non_essential       non_moonotonic
     return [monotonic.count(1),monotonic.count(0),monotonic.count(-1),monotonic.count(-2)]
 
+
+def random_non_degenerated_function2(n,MAX_TRIAL=10000):
+    cnt = 0
+    while True: #works because most functions are non-degenerated
+        #F = random_non_degenerated_function(n) 
+        F = random_k_canalizing(n,n)
+        t = is_monotonic2(F)
+        if t[0] > t[1] and t[3] <= n/5:
+            #print(cnt)
+            return F
+        cnt+=1
+        if cnt > MAX_TRIAL:
+            print("[WARN] Failed to generate random function of size: " + str(n))
+            return F
 
 def random_non_degenerated_function(n):
     while True: #works because most functions are non-degenerated
@@ -995,7 +965,7 @@ def random_edge_list(N,ns,NO_SELF_REGULATION):
         edge_list.extend( list(zip(indexes,i*np.ones(ns[i],dtype=int))) )
     return edge_list
 
-def random_BN(N, n = 2, k = 0, STRONGLY_CONNECTED = True, indegree_distribution = 'constant', list_x=[], kis = None, EXACT_DEPTH=False, NO_SELF_REGULATION=True, MORE_ACTV=False, activation_proportion=-1):    
+def random_BN(N, n = 2, k = 0, STRONGLY_CONNECTED = True, indegree_distribution = 'constant', list_x=[], kis = None, EXACT_DEPTH=False,NO_SELF_REGULATION=True,MORE_ACTV=False):    
     #need to also accept vectors for k and kis
     if indegree_distribution in ['constant','dirac','delta']:
         if type(n) in [list,np.array]:
@@ -1163,11 +1133,10 @@ def random_BN(N, n = 2, k = 0, STRONGLY_CONNECTED = True, indegree_distribution 
         I[edge[1]].append(edge[0])
     for i in range(N):
         I[i] = np.sort(I[i])
-
-    if activation_proportion >= 0 and activation_proportion <= 1:
-        F = set_activation_proportion(F, I, ns, activation_proportion)
     
     return F, I, ns
+
+
 
 ## 4) Enumeration methods
 def nr_non_canalizing_by_weight_exact(n):
@@ -1386,9 +1355,13 @@ def adjacency_matrix(I,constants=[],IGNORE_SELFLOOPS=False,IGNORE_CONSTANTS=True
                 m[j,i] = 1
     return m
 
-def variable_types(F):
+def is_monotonic(F,GET_DETAILS=False):
+    n=0
+    if len(F) > 0:
+        n=n_from_f(F)
+
+    F = np.array(F)
     monotonic = []
-    n = n_from_f(F)
     for i in range(n):
         dummy_add=(2**(n-1-i))
         dummy=np.arange(2**n)%(2**(n-i))//dummy_add
@@ -1402,12 +1375,7 @@ def variable_types(F):
         elif min_diff>=0 and max_diff==1:
             monotonic.append('increasing')            
         elif min_diff==-1 and max_diff<=0:
-            monotonic.append('decreasing')
-    return monotonic
-
-def is_monotonic(F,GET_DETAILS=False):
-    F = np.array(F)
-    monotonic = variable_types(F)
+            monotonic.append('decreasing')   
     if GET_DETAILS:
         return ('not essential' not in monotonic,monotonic)
     else:
