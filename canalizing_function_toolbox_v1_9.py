@@ -762,6 +762,32 @@ def apply_operator(operator, val1, val2):
 def random_function(n):
     return np.random.randint(2, size = 2**n)    
 
+def is_monotonic2(F):
+    n=0
+    if len(F) > 0:
+        n=n_from_f(F)
+
+    F = np.array(F)
+    monotonic = []
+    for i in range(n):
+        dummy_add=(2**(n-1-i))
+        dummy=np.arange(2**n)%(2**(n-i))//dummy_add
+        diff = F[dummy==1]-F[dummy==0]
+        min_diff = min(diff)
+        max_diff = max(diff)
+        if min_diff==0 and max_diff==0:
+            monotonic.append(-1)
+        elif min_diff==-1 and max_diff==1:
+            monotonic.append(-2)
+        elif min_diff>=0 and max_diff==1:
+            monotonic.append(1)
+        elif min_diff==-1 and max_diff<=0:
+            monotonic.append(0)
+    #print(monotonic)
+    #       increasing          decreasing          non_essential       non_moonotonic
+    return [monotonic.count(1),monotonic.count(0),monotonic.count(-1),monotonic.count(-2)]
+
+
 def random_non_degenerated_function(n):
     while True: #works because most functions are non-degenerated
         F = np.random.randint(2, size = 2**n) 
@@ -788,7 +814,7 @@ def random_non_canalizing_non_degenerated_function(n):
         if not is_canalizing(F,n) and not is_degenerated(F):
             return F
 
-def random_k_canalizing(n, k, EXACT_DEPTH_K=False, x=[]):
+def random_k_canalizing(n, k, EXACT_DEPTH_K=False, x=[], MORE_ACTV=False, TRIAL=50):
     try:
         assert (n-k!=1 or EXACT_DEPTH_K==False)
     except AssertionError:
@@ -825,6 +851,17 @@ def random_k_canalizing(n, k, EXACT_DEPTH_K=False, x=[]):
         else:
             F[i] = core_polynomial[counter_non_canalized_positions]
             counter_non_canalized_positions += 1
+
+    if MORE_ACTV:
+        t = is_monotonic2(F)
+        if t[0] > t[1] and t[3] <= n/5:
+            return F
+        else:
+            if TRIAL == 0:
+                print('Failed with n %d k %d' % (n,k))
+                print(t)
+                return F
+            return random_k_canalizing(n, k, EXACT_DEPTH_K, x, MORE_ACTV, TRIAL-1)
     return F
 
 def random_k_canalizing_with_specific_weight(n, kis, EXACT_DEPTH_K=False, x=[]):
@@ -914,7 +951,7 @@ def random_edge_list(N,ns,NO_SELF_REGULATION):
         edge_list.extend( list(zip(indexes,i*np.ones(ns[i],dtype=int))) )
     return edge_list
 
-def random_BN(N, n = 2, k = 0, STRONGLY_CONNECTED = True, indegree_distribution = 'constant', list_x=[], kis = None, EXACT_DEPTH=False,NO_SELF_REGULATION=True):    
+def random_BN(N, n = 2, k = 0, STRONGLY_CONNECTED = True, indegree_distribution = 'constant', list_x=[], kis = None, EXACT_DEPTH=False,NO_SELF_REGULATION=True,MORE_ACTV=False):
     #need to also accept vectors for k and kis
     if indegree_distribution in ['constant','dirac','delta']:
         if type(n) in [list,np.array]:
@@ -1063,9 +1100,9 @@ def random_BN(N, n = 2, k = 0, STRONGLY_CONNECTED = True, indegree_distribution 
     for i in range(N):
         if (not type(k) in [int,np.int64] or k>0) and kis==None:
             if type(k) in [int,np.int64]:
-                F.append(random_k_canalizing(ns[i], k, EXACT_DEPTH_K = EXACT_DEPTH, x=list_x[ns[i]-1]))
+                F.append(random_k_canalizing(ns[i], k, EXACT_DEPTH_K = EXACT_DEPTH, x=list_x[ns[i]-1],MORE_ACTV=MORE_ACTV))
             else:
-                F.append(random_k_canalizing(ns[i], k[i], EXACT_DEPTH_K = EXACT_DEPTH, x=list_x[ns[i]-1]))
+                F.append(random_k_canalizing(ns[i], k[i], EXACT_DEPTH_K = EXACT_DEPTH, x=list_x[ns[i]-1],MORE_ACTV=MORE_ACTV))
         elif kis!=None: #value of k is ignored if a layer structure is provided
             if np.all([type(el) in [int,np.int64] for el in kis]):
                 F.append(random_k_canalizing_with_specific_weight(ns[i], kis, EXACT_DEPTH_K = EXACT_DEPTH, x=list_x[ns[i]-1]))                
