@@ -106,6 +106,8 @@ SLURM_ID = int(sys.argv[1])
 nsims_per_model = 1000
 for i,F in enumerate(Fs):
     I = Is[i]
+    variables = variabless[i]
+    print(variables)
     n = [can.n_from_f(f) for f in F]
     n_essential = [can.nr_essential_variables(f) for f in F]
     k = [can.get_canalizing_depth(f) for f in F]

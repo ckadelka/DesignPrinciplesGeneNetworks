@@ -14,6 +14,7 @@ parser.add_argument("-l", help="Selected Length")
 parser.add_argument("-t", help="Selected Types")
 args = parser.parse_args()
 
+
 attrs = []
 types = []
 lengths = []
