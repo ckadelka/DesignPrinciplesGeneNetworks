@@ -12,7 +12,7 @@ import load_database11 as db
 folders = ['update_rules_cell_collective/', 'update_rules_models_in_literature_we_randomly_come_across/']
 max_degree = 16
 max_n=1000
-[Fs,Is,degrees,degrees_essential,variabless,constantss,models_loaded,models_not_loaded] = db.load_database(folders,max_degree=max_degree,max_n=max_n)
+[Fs,Is,degrees,degrees_essential,variabless,constantss,models_loaded,models_not_loaded] = db.load_database(folders,max_degree=max_degree,max_n=max_n,DONT_LOAD_IFMAX_DEGREE=True)
 N = len(models_loaded)
 jaccard_similarity_threshold = 0.8
 Fs,Is,degrees,degrees_essential,variabless,constantss,models_loaded,N,models_excluded = db.exclude_similar_models(Fs,Is,degrees,degrees_essential,variabless,constantss,models_loaded,N,jaccard_similarity_threshold=jaccard_similarity_threshold)
