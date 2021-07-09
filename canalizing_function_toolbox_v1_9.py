@@ -132,6 +132,14 @@ def edgelist_to_I(edgelist):
         I[dict_var[targets[i]]].append(dict_var[regulators[i]])
     return I,var
 
+def I_to_edgelist(I):
+    edgelist = []
+    for target,node in enumerate(I):
+        for j,regulator in enumerate(node):
+            edgelist.append([regulator, target])
+    return edgelist
+
+
 def bool_to_poly(f,x=[]):
     n=n_from_f(f)
 
@@ -994,6 +1002,75 @@ def random_edge_list(N,ns,NO_SELF_REGULATION):
             indexes = np.random.choice(np.arange(N), ns[i],replace=False)   
         edge_list.extend( list(zip(indexes,i*np.ones(ns[i],dtype=int))) )
     return edge_list
+
+#Pick a random edge to swap with that is not from the node
+def get_random_swap_idx(I, in_idx):
+    valid_swaps = []
+    for i,node in enumerate(I):
+        if i == in_idx:
+            continue
+        for j,regulator in enumerate(node):
+            if regulator != in_idx:
+                valid_swaps.append([i, j])
+    if len(valid_swaps) == 0:
+        print("No network with given in and out degree distribution exists without self regulation.")
+    
+    rand_idx = random.randint(0, len(valid_swaps)-1)
+    return valid_swaps[rand_idx]
+
+def random_adj_list(in_degrees, out_degrees, NO_SELF_REGULATION=False, STRONGLY_CONNECTED=False):
+    assert len(in_degrees) == len(out_degrees)
+    #break from loop as soon as we satisfy strongly_connected
+    while True:
+        in_list = []
+        out_list = []
+        for i,out_num in enumerate(out_degrees):
+            in_num = in_degrees[i]
+            for j in range(out_num):
+                out_list.append(i)
+            for j in range(in_num):
+                in_list.append(i)
+
+        random.shuffle(in_list)
+        random.shuffle(out_list)
+        
+        I = [[] for i in range(len(in_degrees))]
+        for i,node in enumerate(I):
+            while len(in_list) > 0:
+                in_idx = in_list.pop()
+                out_list_idx = len(out_list)-1
+
+                if NO_SELF_REGULATION:
+                    while out_list[out_list_idx] == in_idx and out_list_idx > 0:
+                        out_list_idx -= 1
+                
+                out_idx = out_list.pop(out_list_idx)
+                if NO_SELF_REGULATION and out_idx == in_idx:
+                    swap_node_idx,swap_edge_idx = get_random_swap_idx(I, in_idx)
+                    temp = I[swap_node_idx][swap_edge_idx]
+                    I[swap_node_idx][swap_edge_idx] = out_idx
+                    I[in_idx].append(temp)
+                else:
+                    I[in_idx].append(out_idx)
+        
+        if STRONGLY_CONNECTED:
+            E = I_to_edgelist(I)
+            G = nx.from_edgelist(E, create_using = nx.MultiDiGraph())
+            strongly_connected = nx.is_strongly_connected(G)
+            if not strongly_connected:
+                continue
+        break
+    return I
+
+#Randomly rewire I while preserving both the in and out degrees of all nodes
+def rewire_I(I, NO_SELF_REGULATION=False, STRONGLY_CONNECTED=False):
+    in_degrees = [len(node) for node in I]
+    out_degrees = [0 for node in I]
+    for node in I:
+        for regulator in node:
+            out_degrees[regulator] += 1
+    return random_adj_list(in_degrees, out_degrees, NO_SELF_REGULATION=NO_SELF_REGULATION, STRONGLY_CONNECTED=STRONGLY_CONNECTED)
+
 
 def random_BN(N, n = 2, k = 0, STRONGLY_CONNECTED = True, indegree_distribution = 'constant', list_x=[], kis = None, EXACT_DEPTH=False, NO_SELF_REGULATION=True, MORE_ACTV=False, activation_proportion=-1):    
     #need to also accept vectors for k and kis
