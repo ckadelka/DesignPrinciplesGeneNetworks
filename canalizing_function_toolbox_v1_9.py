@@ -1063,14 +1063,22 @@ def random_adj_list(in_degrees, out_degrees, NO_SELF_REGULATION=False, STRONGLY_
     return I
 
 #Randomly rewire I while preserving both the in and out degrees of all nodes
-def rewire_I(I, NO_SELF_REGULATION=False, STRONGLY_CONNECTED=False):
+def rewire_I(I, NO_SELF_REGULATION=False, STRONGLY_CONNECTED=False, preserve_self_regulation=False):
     in_degrees = [len(node) for node in I]
     out_degrees = [0 for node in I]
-    for node in I:
+    preserved_edges = []
+    for target,node in enumerate(I):
         for regulator in node:
             out_degrees[regulator] += 1
-    return random_adj_list(in_degrees, out_degrees, NO_SELF_REGULATION=NO_SELF_REGULATION, STRONGLY_CONNECTED=STRONGLY_CONNECTED)
+            if preserve_self_regulation and regulator == target:
+                out_degrees[regulator] -= 1
+                in_degrees[target] -= 1
+                preserved_edges.append([regulator, target])
 
+    I = random_adj_list(in_degrees, out_degrees, NO_SELF_REGULATION=NO_SELF_REGULATION, STRONGLY_CONNECTED=STRONGLY_CONNECTED)
+    for edge in preserved_edges:
+        I[edge[1]].append(edge[0])
+    return I
 
 def random_BN(N, n = 2, k = 0, STRONGLY_CONNECTED = True, indegree_distribution = 'constant', list_x=[], kis = None, EXACT_DEPTH=False, NO_SELF_REGULATION=True, MORE_ACTV=False, activation_proportion=-1):    
     #need to also accept vectors for k and kis
