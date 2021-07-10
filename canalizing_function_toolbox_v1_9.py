@@ -768,21 +768,21 @@ def apply_operator(operator, val1, val2):
     else:
         print("err, unrecognized operator: ", operator)
 
-#set a variable to be activating or inhibiting
-def set_var_type(f, var, val):
+#change an inhibitor to opposite activator or vice-versa
+def swap_var_type(f, var):
     n = n_from_f(f)
     step_size = pow(2, n-var-1)
     flen = len(f)
     for i in range(int(flen/step_size/2)):
         for j in range(step_size):
             idx = i*step_size*2 + j
-            if f[idx] == val and f[idx+step_size] != val:
-                f[idx] = (val+1)%2
-                f[idx+step_size] = val
+            temp = f[idx]
+            f[idx] = f[idx+step_size]
+            f[idx+step_size] = temp
     return f
 
-#Return a new F with set proportion of activation in all activating and inhibiting variables and proportion of monotonic variables in all monotonic and not monotonic variables.
-def set_monotonic_activation_proportion(F, monotonic_proportion, activation_proportion):
+#Given F and I, return a new F where the proportion of activation in all activating and inhibiting connections is proportion (rounded).
+def set_activation_proportion(F, I, ns, proportion):
     #classify all connections as activation, inhibition, or neither
     original_var_types = [variable_types(f) for f in F]
     increasing_counts = [var_type.count('increasing') for var_type in original_var_types]
@@ -790,31 +790,23 @@ def set_monotonic_activation_proportion(F, monotonic_proportion, activation_prop
     monotonic_counts = [increasing_counts[i] + decreasing_counts[i] for i in range(len(increasing_counts))]
 
     monotonic_indicies = []
-    conditional_indicies = []
     for i,node in enumerate(original_var_types):
         for j,variable_type in enumerate(node):
             if variable_type == 'increasing' or variable_type == 'decreasing':
                 monotonic_indicies.append([i, j])
-            elif variable_type == 'not monotonic':
-                conditional_indicies.append([i, j])
-
-    total_variables = len(conditional_indicies) + len(monotonic_indicies)
-    new_monotonic_count = round(total_variables * monotonic_proportion)
-    random.shuffle(conditional_indicies)
-    while len(conditional_indicies) > 0 and len(monotonic_indicies) < new_monotonic_count:
-        monotonic_indicies.append(conditional_indicies.pop())
     
     total_monotonic = len(monotonic_indicies)
 
     #determine how many need to be activation and how many need to be inhibition
-    new_increasing_count = round(total_monotonic * activation_proportion)
+    new_increasing_count = round(total_monotonic * proportion)
     #randomly assign this many nodes to be activation, and the rest to be inhibition
     random.shuffle(monotonic_indicies)
 
     for i,index in enumerate(monotonic_indicies):
         node = index[0]
         var = index[1]
-        F[node] = set_var_type(F[node], var, int(i < new_increasing_count))
+        if (original_var_types[node][var] == 'decreasing') == (i < new_increasing_count):
+            F[node] = swap_var_type(F[node], var)
     
     return F
 
@@ -1088,7 +1080,7 @@ def rewire_I(I, NO_SELF_REGULATION=False, STRONGLY_CONNECTED=False, preserve_sel
         I[edge[1]].append(edge[0])
     return I
 
-def random_BN(N, n = 2, k = 0, STRONGLY_CONNECTED = True, indegree_distribution = 'constant', list_x=[], kis = None, EXACT_DEPTH=False, NO_SELF_REGULATION=True, MORE_ACTV=False, activation_proportion=.5, monotonic_proportion=0):    
+def random_BN(N, n = 2, k = 0, STRONGLY_CONNECTED = True, indegree_distribution = 'constant', list_x=[], kis = None, EXACT_DEPTH=False, NO_SELF_REGULATION=True, MORE_ACTV=False, activation_proportion=-1):    
     #need to also accept vectors for k and kis
     if indegree_distribution in ['constant','dirac','delta']:
         if type(n) in [list,np.array]:
@@ -1257,7 +1249,8 @@ def random_BN(N, n = 2, k = 0, STRONGLY_CONNECTED = True, indegree_distribution 
     for i in range(N):
         I[i] = np.sort(I[i])
 
-    F = set_monotonic_activation_proportion(F, monotonic_proportion, activation_proportion)
+    if activation_proportion >= 0 and activation_proportion <= 1:
+        F = set_activation_proportion(F, I, ns, activation_proportion)
     
     return F, I, ns
 
