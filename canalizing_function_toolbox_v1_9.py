@@ -974,6 +974,145 @@ def random_k_canalizing_with_specific_weight(n, kis, EXACT_DEPTH_K=False, x=[]):
             counter_non_canalized_positions += 1
     return F
 
+
+def find_claim_targets(var, var_types, f):
+    var_type = var_types[var]
+    n = n_from_f(f)
+    step_size = pow(2, n-var-1)
+    flen = len(f)
+    claim_targets = []
+    if var_type == 'increasing':
+        incompatible_types = [1,0]
+    elif var_type == 'decreasing':
+        incompatible_types = [0,1]
+    elif var_type == 'conditional':
+        incompatible_types = [-2,-2]
+
+    for i in range(int(flen/step_size/2)):
+        for j in range(step_size):
+            off_idx = i*step_size*2 + j
+            on_idx = off_idx + step_size
+            off_val = f[off_idx]
+            on_val = f[on_idx]
+            if off_val != incompatible_types[0] and on_val != incompatible_types[1] and (on_val != off_val or on_val == -1):
+                if var_type == 'increasing':
+                    new_targets = [off_idx]
+                elif var_type == 'decreasing':
+                    new_targets = [on_idx]
+                elif var_type == 'conditional':
+                    new_targets = [off_idx, on_idx]
+                for new_target in new_targets:
+                    if is_valid_control(f, var, var_types, new_target):
+                        claim_targets.append(new_target)
+
+    return claim_targets
+def complete_forced_outputs(f, var_types, changed):
+    n = len(var_types)
+    flen = len(f)
+    while len(changed) > 0:
+        idx = changed.pop()
+        val = f[idx]
+        for i in range(n):
+            step_size = pow(2, n-i-1)
+            state = int(idx % (step_size*2) >= int(step_size))
+            var_type = var_types[i]
+            if (var_type == 'increasing' and state != val) or (var_type == 'decreasing' and state == val):
+                if state == 1:
+                    pair_idx = idx - step_size
+                else:
+                    pair_idx = idx + step_size
+                if f[pair_idx] == -1:
+                    f[pair_idx] = val
+                    changed.append(pair_idx)
+                else:
+                    assert f[pair_idx] == val
+    return f
+def is_valid_control(f, var, var_types, changed):
+    f = f.copy()
+    n = len(var_types)
+    step_size = pow(2, n-var-1)
+    claim_target_inactive = changed
+    if claim_target_inactive % (step_size*2) < int(step_size):
+        claim_target_active = claim_target_inactive + step_size
+    else:
+        claim_target_active = claim_target_inactive - step_size
+    f[claim_target_active] = 1
+    f[claim_target_inactive] = 0
+    return not in_gridlock(f, var_types, [claim_target_active, claim_target_inactive])
+
+def in_gridlock(f, var_types, changes):
+    try:
+        completed = complete_forced_outputs(f, var_types, changes)
+        return False
+    except:
+        return True
+
+def find_set_options(f, unassigned_indicies, var_types):
+    options = []
+    for idx in unassigned_indicies:
+        for val in range(2):
+            temp_f = f.copy()
+            temp_f[idx] = val
+            if not in_gridlock(f, var_types, [idx]):
+                options.append(idx, val)
+    return options
+
+def random_function_var_types(var_types):
+    n = len(var_types)
+    flen = pow(2, n)
+    restarting = True
+
+    while restarting:
+        restarting = False
+        f = [-1 for i in range(flen)]
+        for var,var_type in enumerate(var_types):
+            step_size = pow(2, n-var-1)
+            max_options = (flen/2)
+            if var_type == 'conditional':
+                max_options = max_options*2
+
+            claim_targets = find_claim_targets(var, var_types, f)
+            option_count = len(claim_targets)
+            #restart randomly more often for fewer options to normalize everything to having a 1/max_options chance of getting picked.
+            keep_chance = option_count / max_options
+            print("chance to keep: ", keep_chance, " for var ", var)
+            if random.random() > keep_chance:
+                restarting = True
+                print("restarting")
+                break
+            claim_target_inactive = claim_targets[random.randint(0, option_count-1)]
+            if claim_target_inactive % (step_size*2) < int(step_size):
+                claim_target_active = claim_target_inactive + step_size
+            else:
+                claim_target_active = claim_target_inactive - step_size
+            f[claim_target_active] = 1
+            f[claim_target_inactive] = 0
+
+            f = complete_forced_outputs(f, var_types, [claim_target_inactive, claim_target_active])
+        '''
+        #Now we assign any remaining -1 outputs
+        unassigned_indicies = []
+        for i,val in enumerate(f):
+            if val == -1:
+                unassigned_indicies.append(i)
+        start_unassigned = len(unassigned_indicies)
+        step = 0
+        while len(unassigned_indicies) > 0:
+            max_options = start_unassigned - step
+            set_options = find_set_options(f, unassigned_indicies, var_types)
+            keep_chance = len(set_options) / max_options
+            if random.random() > keep_chance:
+                restarting = True
+                print("restarting on -1 assignments")
+                break
+
+
+            step += 1'''
+
+    
+    return f
+        
+
 def random_adj_matrix(N,ns,NO_SELF_REGULATION=True,STRONGLY_CONNECTED=False): #recursive function definition
     matrix = np.zeros((N, N), dtype = int)
     indices = []
@@ -1229,14 +1368,14 @@ def random_BN(N, n = 2, k = 0, STRONGLY_CONNECTED = True, indegree_distribution 
     for i in range(N):
         if (not type(k) in [int,np.int64] or k>0) and kis==None:
             if type(k) in [int,np.int64]:
-                F.append(random_k_canalizing(ns[i], k, EXACT_DEPTH_K = EXACT_DEPTH, x=list_x[ns[i]-1],MORE_ACTV=MORE_ACTV))
+                F.append(random_k_canalizing(ns[i], min(ns[i], k), EXACT_DEPTH_K = EXACT_DEPTH, x=list_x[ns[i]-1],MORE_ACTV=MORE_ACTV))
             else:
-                F.append(random_k_canalizing(ns[i], k[i], EXACT_DEPTH_K = EXACT_DEPTH, x=list_x[ns[i]-1],MORE_ACTV=MORE_ACTV))
+                F.append(random_k_canalizing(ns[i], min(ns[i], k[i]), EXACT_DEPTH_K = EXACT_DEPTH, x=list_x[ns[i]-1],MORE_ACTV=MORE_ACTV))
         elif kis!=None: #value of k is ignored if a layer structure is provided
             if np.all([type(el) in [int,np.int64] for el in kis]):
-                F.append(random_k_canalizing_with_specific_weight(ns[i], kis, EXACT_DEPTH_K = EXACT_DEPTH, x=list_x[ns[i]-1]))                
+                F.append(random_k_canalizing_with_specific_weight(ns[i], min(ns[i], kis), EXACT_DEPTH_K = EXACT_DEPTH, x=list_x[ns[i]-1]))                
             else:
-                F.append(random_k_canalizing_with_specific_weight(ns[i], kis[i], EXACT_DEPTH_K = EXACT_DEPTH, x=list_x[ns[i]-1]))                                
+                F.append(random_k_canalizing_with_specific_weight(ns[i], min(ns[i], kis[i]), EXACT_DEPTH_K = EXACT_DEPTH, x=list_x[ns[i]-1]))                                
         else:
             if EXACT_DEPTH==True: #i.e. if k==0
                 F.append(random_non_canalizing_non_degenerated_function(ns[i]))                   
