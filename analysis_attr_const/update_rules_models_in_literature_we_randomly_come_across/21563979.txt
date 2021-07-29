@@ -1,0 +1,10 @@
+M	=	C AND NOT R AND NOT Rm
+B	=	M
+R	=	NOT A AND NOT Am
+A	=	L AND B
+L	=	P AND Le AND NOT Ge
+P	=	M
+C	=	NOT Ge
+Rm	=	(NOT A AND NOT Am) OR R
+Am	=	L OR Lm
+Lm	=	((Lem AND P) OR Le) AND NOT Ge

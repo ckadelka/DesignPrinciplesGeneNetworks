@@ -1,0 +1,8 @@
+cdk2_cyclinE = (cdc_25_1 AND NOT cul1_lin23 AND NOT lin_35_efl_1_dpl_1 AND NOT cki1) OR (cdk2_cyclinE AND NOT cul1_lin23 AND NOT lin_35_efl_1_dpl_1 AND NOT cki1) OR (cdk2_cyclinE AND cdc_25_1 AND NOT cul1_lin23 AND NOT lin_35_efl_1_dpl_1) OR (cdk2_cyclinE AND cdc_25_1 AND NOT cul1_lin23 AND NOT cki1) OR (cdk2_cyclinE AND cdc_25_1 AND NOT lin_35_efl_1_dpl_1 AND NOT cki1)
+cdc_25_1 = (cdc_25_1 AND NOT cul1_lin23)
+cul1_lin23 = cdk2_cyclinE
+lin_35_efl_1_dpl_1 = (NOT cdk2_cyclinE AND lin_35_efl_1_dpl_1) OR (NOT cdk2_cyclinE AND cul1_lin23) OR (cul1_lin23 AND lin_35_efl_1_dpl_1)
+cdk1_cyclinB = (cdk1_cyclinB AND NOT fzr_1 AND NOT cdc14_fzy1 AND NOT cki1) OR (lin_35_efl_1_dpl_1 AND NOT fzr_1 AND NOT cdc14_fzy1 AND NOT cki1) OR (lin_35_efl_1_dpl_1 AND cdk1_cyclinB AND NOT fzr_1 AND NOT cdc14_fzy1) OR (lin_35_efl_1_dpl_1 AND cdk1_cyclinB AND NOT fzr_1 AND NOT cki1) OR (lin_35_efl_1_dpl_1 AND cdk1_cyclinB AND NOT cdc14_fzy1 AND NOT cki1) OR (cdc_25_1 AND NOT fzr_1 AND NOT cdc14_fzy1 AND NOT cki1) OR (cdc_25_1 AND cdk1_cyclinB AND NOT fzr_1 AND NOT cdc14_fzy1) OR (cdc_25_1 AND cdk1_cyclinB AND NOT fzr_1 AND NOT cki1) OR (cdc_25_1 AND cdk1_cyclinB AND NOT cdc14_fzy1 AND NOT cki1) OR (cdc_25_1 AND lin_35_efl_1_dpl_1 AND NOT fzr_1 AND NOT cdc14_fzy1) OR (cdc_25_1 AND lin_35_efl_1_dpl_1 AND NOT fzr_1 AND NOT cki1) OR (cdc_25_1 AND lin_35_efl_1_dpl_1 AND NOT cdc14_fzy1 AND NOT cki1) OR (cdc_25_1 AND lin_35_efl_1_dpl_1 AND cdk1_cyclinB AND NOT fzr_1) OR (cdc_25_1 AND lin_35_efl_1_dpl_1 AND cdk1_cyclinB AND NOT cdc14_fzy1) OR (cdc_25_1 AND lin_35_efl_1_dpl_1 AND cdk1_cyclinB AND NOT cki1)
+fzr_1 = cdc14_fzy1
+cdc14_fzy1 = (NOT cdk2_cyclinE AND cdc14_fzy1) OR (NOT cdk2_cyclinE AND cdk1_cyclinB) OR (cdk1_cyclinB AND cdc14_fzy1)
+cki1 = cdc14_fzy1 OR fzr_1
