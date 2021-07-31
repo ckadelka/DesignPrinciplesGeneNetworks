@@ -22,8 +22,8 @@ SLURM_ID = int(sys.argv[1])
 nsims = 5
 
 folders = ['update_rules_cell_collective/', 'update_rules_models_in_literature_we_randomly_come_across/']
-max_degree = 16
-max_n= 20
+max_degree = 8
+max_n= 12
 Fs,Is,degrees,degrees_essential,variabless,constantss,models_loaded,models_not_loaded = db.load_database(folders,max_degree=max_degree,max_n=max_n)
 N = len(models_loaded)
 jaccard_similarity_threshold = 0.8
@@ -36,7 +36,8 @@ def analyze_networks(tFs, tIs, tdegrees):
 		"total_attractors": [],
 		"avg_length_attractors": [],
 		"entropy": [],
-		"nums_loop_type": [[] for i in range(5)]
+		"nums_loop_type": [[] for i in range(5)],
+		"time": [],
 	}
 	for i in range(len(tFs)):
 		F = tFs[i]
@@ -76,6 +77,8 @@ def analyze_networks(tFs, tIs, tdegrees):
 		out["avg_length_attractors"].append(total_attractor_length / attractors[1])
 
 		out["entropy"].append(can.entropy(attractors[2]))
+
+		out["time"].append(time.time())
 
 	return out
 
