@@ -23,7 +23,7 @@ nsims = 5
 
 folders = ['update_rules_cell_collective/', 'update_rules_models_in_literature_we_randomly_come_across/']
 max_degree = 16
-max_n= 1000
+max_n= 20
 Fs,Is,degrees,degrees_essential,variabless,constantss,models_loaded,models_not_loaded = db.load_database(folders,max_degree=max_degree,max_n=max_n)
 N = len(models_loaded)
 jaccard_similarity_threshold = 0.8
@@ -34,6 +34,7 @@ def analyze_networks(tFs, tIs, tdegrees):
 	out = {
 		"steady_states": [],
 		"total_attractors": [],
+		"avg_length_attractors": [],
 		"nums_loop_type": [[] for i in range(5)]
 	}
 	for i in range(len(tFs)):
@@ -43,7 +44,9 @@ def analyze_networks(tFs, tIs, tdegrees):
 		network = [F, I, D]
 		num_steady_state = 0
 		num_attractors = 0
+		avg_len_attractors = 0
 		num_loop_type = [0, 0, 0, 0, 0]
+		
 
 		length, loop_type = analysis.record_loops(network)
 		for j in range(len(length)):
@@ -64,9 +67,17 @@ def analyze_networks(tFs, tIs, tdegrees):
 		except:
 			out["steady_states"].append(-1)
 			out["total_attractors"].append(-1)
-	
+
+		attractors = can.num_of_attractors_v2(F, I, len(F))
+		total_attractor_length = 0
+		for j in range(attractors[1]):
+			total_attractor_length += len(attractors[0][j])
+		out["avg_length_attractors"].append(total_attractor_length / attractors[1])
+			
 	return out
 
+def real_networks:
+	return analyze_networks(Fs, Is, degrees)
 
 #rewire I
 def rewire():
@@ -122,6 +133,7 @@ def canalization():
 	return analyze_networks(tFs, tIs, tdegrees)
 
 data = {
+	"real networks:": real_networks(),
 	"rewire": rewire(),
 	"activation proportion": prop_pn(),
 	"canalization": canalization()
