@@ -72,7 +72,7 @@ def analyze_networks(tFs, tIs, tdegrees):
 		total_attractor_length = 0
 		for j in range(attractors[1]):
 			total_attractor_length += len(attractors[0][j])
-		out["avg_length_attractors"].append(total_attractor_length / attractors[1])
+		out["avg_length_attractors"].append(total_attractor_length / len(attractors[1]))
 			
 	return out
 
