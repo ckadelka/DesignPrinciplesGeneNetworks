@@ -19,7 +19,7 @@ output_folder = 'results/'
 filename = sys.argv[0]
 SLURM_ID = int(sys.argv[1])
     
-nsims = 5
+nsims = 1
 
 folders = ['update_rules_cell_collective/', 'update_rules_models_in_literature_we_randomly_come_across/']
 max_degree = 8
@@ -27,7 +27,7 @@ max_n= 12
 Fs,Is,degrees,degrees_essential,variabless,constantss,models_loaded,models_not_loaded = db.load_database(folders,max_degree=max_degree,max_n=max_n)
 N = len(models_loaded)
 jaccard_similarity_threshold = 0.8
-Fs,Is,degrees,degrees_essential,variabless,constantss,models_loaded,N,models_excluded = db.exclude_similar_models(Fs,Is,degrees,degrees_essential,variabless,constantss,models_loaded,N,jaccard_similarity_threshold=jaccard_similarity_threshold)
+# Fs,Is,degrees,degrees_essential,variabless,constantss,models_loaded,N,models_excluded = db.exclude_similar_models(Fs,Is,degrees,degrees_essential,variabless,constantss,models_loaded,N,jaccard_similarity_threshold=jaccard_similarity_threshold)
 
 print("loaded: ", N)
 def analyze_networks(tFs, tIs, tdegrees):
@@ -82,7 +82,7 @@ def analyze_networks(tFs, tIs, tdegrees):
 
 	return out
 
-def real_networks:
+def real_networks():
 	return analyze_networks(Fs, Is, degrees)
 
 #rewire I
