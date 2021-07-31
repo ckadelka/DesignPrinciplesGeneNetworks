@@ -35,6 +35,7 @@ def analyze_networks(tFs, tIs, tdegrees):
 		"steady_states": [],
 		"total_attractors": [],
 		"avg_length_attractors": [],
+		"entropy": [],
 		"nums_loop_type": [[] for i in range(5)]
 	}
 	for i in range(len(tFs)):
@@ -45,6 +46,7 @@ def analyze_networks(tFs, tIs, tdegrees):
 		num_steady_state = 0
 		num_attractors = 0
 		avg_len_attractors = 0
+		total_attractor_length = 0
 		num_loop_type = [0, 0, 0, 0, 0]
 		
 
@@ -69,11 +71,12 @@ def analyze_networks(tFs, tIs, tdegrees):
 			out["total_attractors"].append(-1)
 
 		attractors = can.num_of_attractors_v2(F, I, len(F))
-		total_attractor_length = 0
 		for j in range(attractors[1]):
 			total_attractor_length += len(attractors[0][j])
 		out["avg_length_attractors"].append(total_attractor_length / attractors[1])
-			
+
+		out["entropy"].append(can.entropy(attractors[2]))
+
 	return out
 
 def real_networks:
