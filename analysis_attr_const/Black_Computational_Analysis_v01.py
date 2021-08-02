@@ -18,12 +18,13 @@ output_folder = 'results/'
 
 filename = sys.argv[0]
 SLURM_ID = int(sys.argv[1])
+TIME = time.time()
     
 nsims = 1
 
 folders = ['update_rules_cell_collective/', 'update_rules_models_in_literature_we_randomly_come_across/']
-max_degree = 8
-max_n= 12
+max_degree = 12
+max_n= 30
 Fs,Is,degrees,degrees_essential,variabless,constantss,models_loaded,models_not_loaded = db.load_database(folders,max_degree=max_degree,max_n=max_n)
 N = len(models_loaded)
 jaccard_similarity_threshold = 0.8
@@ -37,7 +38,8 @@ def analyze_networks(tFs, tIs, tdegrees):
 		"avg_length_attractors": [],
 		"entropy": [],
 		"nums_loop_type": [[] for i in range(5)],
-		"time": [],
+		"all_ffls": [],
+		"time": []
 	}
 	for i in range(len(tFs)):
 		F = tFs[i]
@@ -59,6 +61,14 @@ def analyze_networks(tFs, tIs, tdegrees):
 		for j,num in enumerate(num_loop_type):
 			out["nums_loop_type"][j].append(num)
 		
+		for i in range(len(Fs)):
+			F = Fs[i]
+			I = Is[i]
+			A = can.adjacency_matrix(I,constantss[i])
+			(ffls,types) = can.get_ffls(A,F,I)
+			out["all_ffls"].append(list(map(can.get_ffl_type_number,types)))
+		
+		
 		try:
 			attractors = can.num_of_attractors_v2(F, I, len(F))
 			for j in range(len(attractors[0])):
@@ -67,18 +77,21 @@ def analyze_networks(tFs, tIs, tdegrees):
 			num_attractors += attractors[1]
 			out["steady_states"].append(num_steady_state)
 			out["total_attractors"].append(num_attractors)
+
+			for j in range(attractors[1]):
+				total_attractor_length += len(attractors[0][j])
+			out["avg_length_attractors"].append(total_attractor_length / attractors[1])
+
+			out["entropy"].append(can.entropy(attractors[2]))
 		except:
 			out["steady_states"].append(-1)
 			out["total_attractors"].append(-1)
-
-		attractors = can.num_of_attractors_v2(F, I, len(F))
-		for j in range(attractors[1]):
-			total_attractor_length += len(attractors[0][j])
-		out["avg_length_attractors"].append(total_attractor_length / attractors[1])
-
-		out["entropy"].append(can.entropy(attractors[2]))
+			out["avg_length_attractors"].append(-1)
+			out["entropy"].append(-1)
+		
 
 		out["time"].append(time.time())
+	print(time.time())
 
 	return out
 
@@ -138,12 +151,17 @@ def canalization():
 
 	return analyze_networks(tFs, tIs, tdegrees)
 
-data = {
-	"real networks:": real_networks(),
-	"rewire": rewire(),
-	"activation proportion": prop_pn(),
-	"canalization": canalization()
-}
-f = open(output_folder+'results_v%s_nsim%i_SLURM_ID%i.txt' % (version,nsims,SLURM_ID) ,'w')
-f.write(json.dumps(data))
+rewired = rewire(),
+activation_proportion = prop_pn(),
+canalized = canalization()
+
+f = open(output_folder+'results_nsim%i_SLURM_ID%i.txt' % (nsims,SLURM_ID) ,'w')
+f.write('filename\t'+filename+'\n')
+f.write('SLURM_ID\t'+str(SLURM_ID)+'\n')
+f.write('nsim\t'+str(nsims)+'\n')
+f.write('time in seconds\t'+str(int(time.time()-TIME))+'\n')
+vec = [rewired, activation_proportion, canalized]
+name_vec = ['rewired', 'activation_proportion', 'canalized']
+for i in range(len(vec)):
+    f.write(name_vec[i]+'\t'+'\t'.join(list(map(str,vec[i])))+'\n')
 f.close()
