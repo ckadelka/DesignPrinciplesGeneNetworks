@@ -20,7 +20,7 @@ filename = sys.argv[0]
 SLURM_ID = int(sys.argv[1])
 TIME = time.time()
     
-nsims = 1
+nsims = 100
 
 folders = ['update_rules_cell_collective/', 'update_rules_models_in_literature_we_randomly_come_across/']
 max_degree = 10
@@ -37,8 +37,7 @@ def analyze_networks(tFs, tIs, tdegrees):
 		"total_attractors": [],
 		"avg_length_attractors": [],
 		"entropy": [],
-		"nums_loop_type": [[] for i in range(5)],
-		"all_ffls": []
+		"nums_loop_type": [[] for i in range(5)]
 	}
 	for i in range(len(tFs)):
 		F = tFs[i]
@@ -59,10 +58,6 @@ def analyze_networks(tFs, tIs, tdegrees):
 		
 		for j,num in enumerate(num_loop_type):
 			out["nums_loop_type"][j].append(num)
-
-		A = can.adjacency_matrix(I,constantss[i])
-		(ffls,types) = can.get_ffls(A,F,I)
-		out["all_ffls"].append(list(map(can.get_ffl_type_number,types)))
 		
 		try:
 			attractors = can.num_of_attractors_v2(F, I, len(F))
@@ -112,20 +107,21 @@ def prop_pn():
 			types = [can.variable_types(f) for f in Fs[i]]
 			increasing = 0
 			decreasing = 0
-			for j in range(len(types)):
-				for k in range(len(types[j])):
-					if types[j][k] == 'decreasing':
+			for k in range(len(types)):
+				for l in range(len(types[k])):
+					if types[k][l] == 'decreasing':
 						decreasing += 1
-					elif types[j][k] == 'increasing':
+					elif types[k][l] == 'increasing':
 						increasing += 1
 			initial_proportion = increasing / (increasing + decreasing)
-			network = can.random_BN(N = len(Fs[i]), n = degrees[i], k = [can.get_canalizing_depth(f) for f in Fs[i]], indegree_distribution = 'poisson', activation_proportion = initial_proportion)
+			network = can.random_BN(N = len(variabless[i]), n = degrees[i][:len(variabless[i])], k = [can.get_canalizing_depth(Fs[i][k]) for k in range(len(variabless[i]))], indegree_distribution = 'poisson', activation_proportion = initial_proportion)
 			F = network[0]
 			I = network[1]
 			D = network[2]
 			tFs.append(F)
 			tIs.append(I)
 			tdegrees.append(D)
+
 	return analyze_networks(tFs, tIs, tdegrees)
 
 #Generate networks preserving size, indegree distribution, and k
@@ -135,15 +131,16 @@ def canalization():
 	tdegrees = []
 	for i in range(len(Fs)):
 		for j in range(nsims):
-			network = can.random_BN(N = len(Fs[i]), n = degrees[i], k = [can.get_canalizing_depth(f) for f in Fs[i]], indegree_distribution = 'poisson')
+
+			network = can.random_BN(N = len(variabless[i]), n = degrees[i][:len(variabless[i])], k = [can.get_canalizing_depth(Fs[i][k]) for k in range(len(variabless[i]))], indegree_distribution = 'poisson')
 			tFs.append(network[0])
 			tIs.append(network[1])
 			tdegrees.append(network[2])
 
 	return analyze_networks(tFs, tIs, tdegrees)
 
-data = [real_networks()]
-data_names = ["real"]
+data = [real_networks(), rewire(), prop_pn(), canalization()]
+data_names = ["real", "rewire", "activation_prop", "canalization"]
 
 for i,d in enumerate(data):
 	data_name = data_names[i]

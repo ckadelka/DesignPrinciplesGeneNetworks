@@ -30,7 +30,11 @@ def record_loops(network):
     loops = get_loops(network)
     for loop in loops:
         l_length = len(loop)
-        l_type = can.get_type_of_loop(loop,F,I)
+        try:
+            l_type = can.get_type_of_loop(loop,F,I)
+        except:
+            l_type = [-1 for i in range(l_length)]
+
         type_num = can.get_loop_type_number(l_type)
         ret_length.append(l_length)
         ret_type.append(type_num)
