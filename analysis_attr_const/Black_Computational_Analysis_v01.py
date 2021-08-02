@@ -23,8 +23,8 @@ TIME = time.time()
 nsims = 1
 
 folders = ['update_rules_cell_collective/', 'update_rules_models_in_literature_we_randomly_come_across/']
-max_degree = 12
-max_n= 30
+max_degree = 10
+max_n= 20
 Fs,Is,degrees,degrees_essential,variabless,constantss,models_loaded,models_not_loaded = db.load_database(folders,max_degree=max_degree,max_n=max_n)
 N = len(models_loaded)
 jaccard_similarity_threshold = 0.8
@@ -60,9 +60,9 @@ def analyze_networks(tFs, tIs, tdegrees):
 		for j,num in enumerate(num_loop_type):
 			out["nums_loop_type"][j].append(num)
 		
-		for i in range(len(Fs)):
-			F = Fs[i]
-			I = Is[i]
+		for i in range(len(tFs)):
+			F = tFs[i]
+			I = tIs[i]
 			A = can.adjacency_matrix(I,constantss[i])
 			(ffls,types) = can.get_ffls(A,F,I)
 			out["all_ffls"].append(list(map(can.get_ffl_type_number,types)))
@@ -146,8 +146,8 @@ def canalization():
 
 	return analyze_networks(tFs, tIs, tdegrees)
 
-data = [rewire(), prop_pn(), canalization()]
-data_names = ["rewire", "activation proportion", "canalization"]
+data = [real_networks()]
+data_names = ["real"]
 
 for i,d in enumerate(data):
 	data_name = data_names[i]
