@@ -38,8 +38,7 @@ def analyze_networks(tFs, tIs, tdegrees):
 		"avg_length_attractors": [],
 		"entropy": [],
 		"nums_loop_type": [[] for i in range(5)],
-		"all_ffls": [],
-		"time": []
+		"all_ffls": []
 	}
 	for i in range(len(tFs)):
 		F = tFs[i]
@@ -89,10 +88,6 @@ def analyze_networks(tFs, tIs, tdegrees):
 			out["avg_length_attractors"].append(-1)
 			out["entropy"].append(-1)
 		
-
-		out["time"].append(time.time())
-	print(time.time())
-
 	return out
 
 def real_networks():
@@ -151,17 +146,20 @@ def canalization():
 
 	return analyze_networks(tFs, tIs, tdegrees)
 
-rewired = rewire(),
-activation_proportion = prop_pn(),
-canalized = canalization()
+data = [rewire(), prop_pn(), canalization()]
+data_names = ["rewire", "activation proportion", "canalization"]
 
-f = open(output_folder+'results_nsim%i_SLURM_ID%i.txt' % (nsims,SLURM_ID) ,'w')
-f.write('filename\t'+filename+'\n')
-f.write('SLURM_ID\t'+str(SLURM_ID)+'\n')
-f.write('nsim\t'+str(nsims)+'\n')
-f.write('time in seconds\t'+str(int(time.time()-TIME))+'\n')
-vec = [rewired, activation_proportion, canalized]
-name_vec = ['rewired', 'activation_proportion', 'canalized']
-for i in range(len(vec)):
-    f.write(name_vec[i]+'\t'+'\t'.join(list(map(str,vec[i])))+'\n')
-f.close()
+for i,d in enumerate(data):
+	data_name = data_names[i]
+	f = open(output_folder+'results_operation-'+data_name+'_nsim%i_SLURM_ID%i.txt' % (nsims,SLURM_ID) ,'w')
+	f.write('filename\t'+filename+'\n')
+	f.write('SLURM_ID\t'+str(SLURM_ID)+'\n')
+	f.write('nsim\t'+str(nsims)+'\n')
+	f.write('time in seconds\t'+str(int(time.time()-TIME))+'\n')
+
+	name_vec = [key for key in d.keys()]
+	vec = [d[key] for key in name_vec]
+
+	for i in range(len(vec)):
+		f.write(name_vec[i]+'\t'+'\t'.join(list(map(str,vec[i])))+'\n')
+	f.close()
