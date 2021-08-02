@@ -59,14 +59,10 @@ def analyze_networks(tFs, tIs, tdegrees):
 		
 		for j,num in enumerate(num_loop_type):
 			out["nums_loop_type"][j].append(num)
-		
-		for i in range(len(tFs)):
-			F = tFs[i]
-			I = tIs[i]
-			A = can.adjacency_matrix(I,constantss[i])
-			(ffls,types) = can.get_ffls(A,F,I)
-			out["all_ffls"].append(list(map(can.get_ffl_type_number,types)))
-		
+
+		A = can.adjacency_matrix(I,constantss[i])
+		(ffls,types) = can.get_ffls(A,F,I)
+		out["all_ffls"].append(list(map(can.get_ffl_type_number,types)))
 		
 		try:
 			attractors = can.num_of_attractors_v2(F, I, len(F))
@@ -98,8 +94,8 @@ def rewire():
 	nFs = []
 	nIs = []
 	ndegrees = []
-	for i in range(nsims):
-		for i,I in enumerate(Is):
+	for i,I in enumerate(Is):
+		for j in range(nsims):
 			nIs.append(can.rewire_I(I,preserve_self_regulation=True,NO_SELF_REGULATION=True))
 			nFs.append(Fs[i])
 			ndegrees.append(degrees[i])
@@ -111,8 +107,8 @@ def prop_pn():
 	tFs = []
 	tIs = []
 	tdegrees = []
-	for j in range(nsims):
-		for i in range(len(Fs)):
+	for i in range(len(Fs)):
+		for j in range(nsims):
 			types = [can.variable_types(f) for f in Fs[i]]
 			increasing = 0
 			decreasing = 0
@@ -137,8 +133,8 @@ def canalization():
 	tFs = []
 	tIs = []
 	tdegrees = []
-	for j in range(nsims):
-		for i in range(len(Fs)):
+	for i in range(len(Fs)):
+		for j in range(nsims):
 			network = can.random_BN(N = len(Fs[i]), n = degrees[i], k = [can.get_canalizing_depth(f) for f in Fs[i]], indegree_distribution = 'poisson')
 			tFs.append(network[0])
 			tIs.append(network[1])
