@@ -29,6 +29,23 @@ Fs,Is,degrees,degrees_essential,variabless,constantss,models_loaded,models_not_l
 N = len(models_loaded)
 jaccard_similarity_threshold = 0.8
 # Fs,Is,degrees,degrees_essential,variabless,constantss,models_loaded,N,models_excluded = db.exclude_similar_models(Fs,Is,degrees,degrees_essential,variabless,constantss,models_loaded,N,jaccard_similarity_threshold=jaccard_similarity_threshold)
+indices_to_exclude = []
+for i,const in enumerate(constantss):
+	if len(const) > 0: 
+		indices_to_exclude.append(i)
+indices_to_exclude.sort()
+indices_to_exclude.reverse()
+
+for index in indices_to_exclude:
+	Fs.pop(index)
+	Is.pop(index)
+	degrees.pop(index)
+	degrees_essential.pop(index)
+	variabless.pop(index)
+	constantss.pop(index)
+	models_loaded.pop(index)
+	N-=1
+
 
 print("loaded: ", N)
 def analyze_networks(tFs, tIs, tdegrees):
@@ -139,8 +156,8 @@ def canalization():
 
 	return analyze_networks(tFs, tIs, tdegrees)
 
-data = [real_networks(), rewire(), prop_pn(), canalization()]
-data_names = ["real", "rewire", "activation_prop", "canalization"]
+data = [rewire()]
+data_names = ["rewire"]
 
 for i,d in enumerate(data):
 	data_name = data_names[i]
