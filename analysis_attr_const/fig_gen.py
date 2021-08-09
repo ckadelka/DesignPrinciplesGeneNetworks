@@ -2,10 +2,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import load_database11 as db
 
-rewire_string = open("analysis_attr_const/results/results_operation-activation_prop_nsim100_SLURM_ID1.txt").read().split("\n")
-activation_string = open("analysis_attr_const/results/results_operation-activation_prop_nsim100_SLURM_ID1.txt").read().split("\n")
-canalization_string = open("analysis_attr_const/results/results_operation-canalization_nsim100_SLURM_ID1.txt").read().split("\n")
-real_string = open("analysis_attr_const/results/results_operation-real_nsim100_SLURM_ID1.txt").read().split("\n")
+rewire_string = open("results/results_operation-activation_prop_nsim100_SLURM_ID1.txt").read().split("\n")
+activation_string = open("results/results_operation-activation_prop_nsim100_SLURM_ID1.txt").read().split("\n")
+canalization_string = open("results/results_operation-canalization_nsim100_SLURM_ID1.txt").read().split("\n")
+real_string = open("results/results_operation-real_nsim100_SLURM_ID1.txt").read().split("\n")
 
 def read_data(data_string, nsims):
     data_arr = []
@@ -27,6 +27,16 @@ def plot_data(data_matrix, title, real_data):
     ax.set_ylabel(title)
     ax.set_title("Total Attractors - Preserved Canalization vs Real Networks")
     ax.plot(real_data, "o", color='k')
+    plt.show()
+
+def plot_proportion(data_matrix, title, real_data):
+    f,ax = plt.subplots(figsize=(12,4))
+    for i in range(data_matrix.shape[0]):
+        ax.violinplot((data_matrix[i] / data_matrix[1][i]), positions=[i], showextrema=False)
+    ax.set_ylabel(title)
+    ax.set_title("Proportion Steady States - Preserved Canalization vs Real Networks")
+    ax.plot(real_data, "o", color='k')
+    plt.show()
     
 def sort_p_shuffle(null_data, real_data):
     null_matrix = np.reshape(null_data, (36,100))
@@ -38,13 +48,19 @@ def sort_p_shuffle(null_data, real_data):
     out_data = np.array([real_data[indices[i]] for i in range(len(real_data))])
     return out_matrix,out_data
 
-            
+def get_proportion(data_matrix):
+    proportion_steady_states = []
+    for i in range(len(data_matrix[0])):
+        proportion_steady_states.append(data_matrix[0][i] / data_matrix[1][i])
+    return proportion_steady_states
 
-        
 real_data = read_data(real_string, 1)[0]
 activation_data,activation_titles = read_data(canalization_string, 100)
 idx = 1
 activation_matrix,real_data_sub = sort_p_shuffle(activation_data[idx], real_data[idx])
 
 plot_data(activation_matrix, activation_titles[idx], real_data_sub)
+proportion = get_proportion(activation_matrix)
+proportion_title = "Proportion Steady States"
+# plot_proportion(activation_matrix, proportion_title, real_data_sub)
 
