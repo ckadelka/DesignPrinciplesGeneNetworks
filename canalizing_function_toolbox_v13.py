@@ -62,7 +62,7 @@ try:
 except:
     LOADED_CANA=False
 
-## 0) Basics
+## 0) Basics, helper functions
 
 def tobin(x):
     '''returns the binary representation (in array form) of a decimal number'''
@@ -87,38 +87,29 @@ def dec2bin(x,n=[]):
         return res
 
 def bin2dec(state):
+    '''returns the decimal number representation of a binary state'''
     n = len(state)
     b = [2**i for i in range(n)]
     return sum([state[n-i-1]*b[i] for i in range(n)])
 
-def dim(A):
-    try:
-        return (np.size(A,0),np.size(A,1),np.size(A,2),np.size(A,3),np.size(A,4))
-    except IndexError:
-        try:
-            return (np.size(A,0),np.size(A,1),np.size(A,2),np.size(A,3))
-        except IndexError:
-            try:
-                return (np.size(A,0),np.size(A,1),np.size(A,2))
-            except IndexError:
-                try:
-                    return (np.size(A,0),np.size(A,1))
-                except IndexError:
-                    try:
-                        return (np.size(A,0))
-                    except IndexError: 
-                        return (np.size(A))
-
-def find_all_indices(array,el):
+def find_all_indices(array,value):
+    '''returns a list of all indices in array that equal a given value'''
     res=[]
     for i,a in enumerate(array):
-        if a==el:
+        if a==value:
             res.append(i)
     if res==[]:
-        raise ValueError('The element is not in the array at all')
+        raise ValueError('The value is not in the array at all.')
     return res
 
 def edgelist_to_I(edgelist):
+    '''input: an m x 2 array describing all edges (i.e., regulations), 
+    with the first column describing the regulator, and the second the regulated node.
+    
+    outputs: 
+        1. I, a list of lists where 
+        2. var, a list of all variables that show up as regulators and/or regulated nodes.
+    '''    
     regulators = np.array(edgelist)[:,0]
     targets = np.array(edgelist)[:,1]
     var = list(set(regulators)|set(targets))
@@ -129,32 +120,20 @@ def edgelist_to_I(edgelist):
         I[dict_var[targets[i]]].append(dict_var[regulators[i]])
     return I,var
 
-def bool_to_poly(f,x=[]):
-    len_f = len(f)
-    n=int(np.log2(len_f))
-    if x==[]: #to reduce run time, this should be calculated once and then passed as argument
-        x = list(itertools.product([0, 1], repeat = n))
-    num_values = 2**n   
-    text = []
-    for i in range(num_values):
-        if f[i]==True:
-            monomial = '*'.join([('x%i' % (j+1)) if entry==1 else ('(1-x%i)' % (j+1)) for j,entry in enumerate(x[i])])
-            text.append(monomial)
-    if text!=[]:
-        return ' + '.join(text)
-    else:
-        return '0'
+def bool_to_poly(f,bool_list=[]):
+    '''input: f, the right-hand side of a Boolean function (an array of length 2**n where n is the number of inputs)
     
-def bool_to_poly_v2(f,I,variables,constants,x=[]):
+    output: a string of the Boolean function in disjunctive normal form (DNF)
+    '''
     len_f = len(f)
     n=int(np.log2(len_f))
-    if x==[]: #to reduce run time, this should be calculated once and then passed as argument
-        x = list(itertools.product([0, 1], repeat = n))
+    if bool_list==[]: #to reduce run time, this should be calculated once and then passed as argument
+        bool_list = list(itertools.product([0, 1], repeat = n))
     num_values = 2**n   
     text = []
     for i in range(num_values):
         if f[i]==True:
-            monomial = '*'.join([('x%i' % (j+1)) if entry==1 else ('(1-x%i)' % (j+1)) for j,entry in enumerate(x[i])])
+            monomial = '*'.join([('x%i' % (j+1)) if entry==1 else ('(1-x%i)' % (j+1)) for j,entry in enumerate(bool_list[i])])
             text.append(monomial)
     if text!=[]:
         return ' + '.join(text)
@@ -164,6 +143,10 @@ def bool_to_poly_v2(f,I,variables,constants,x=[]):
 ## 1) Methods to analyze Boolean functions
 
 def is_degenerated(F):
+    '''input: f, the right-hand side of a Boolean function (an array of length 2**n where n is the number of inputs)
+    
+    output: a Boolean value describing whether the function contains non-essential variables
+    '''    
     len_F = len(F)
     n=int(np.log2(len_F))
     for i in range(n):
@@ -182,6 +165,10 @@ def is_degenerated(F):
     return False
 
 def get_essential_variables(F):
+    '''input: f, the right-hand side of a Boolean function (an array of length 2**n where n is the number of inputs)
+    
+    output: a Boolean value describing whether the function contains non-essential variables
+    '''    
     if len(F)==0:
         return []
     len_F = len(F)
@@ -202,7 +189,7 @@ def get_essential_variables(F):
             essential_variables.remove(i)
     return essential_variables 
 
-def nr_essential_variables(F):
+def number_essential_variables(F):
     return len(get_essential_variables(F)) 
 
 def get_essential_network(F,I):
@@ -666,6 +653,12 @@ if LOADED_CANA:
         x = cana.boolean_node.BooleanNode(k=n,outputs=F)
         return x.input_redundancy()
 
+    def get_edge_effectiveness(F,n=None):
+        if n==None:
+            n = int(np.log2(len(F)))
+        x = cana.boolean_node.BooleanNode(k=n,outputs=F)
+        return x.edge_effectiveness()
+
 def get_canalizing_depth_inputs_outputs_corefunction(F):
     n = int(np.log2(len(F)))
     (NESTED_CANALIZING,can_inputs,can_outputs,corefunction) = is_k_canalizing_return_inputs_outputs_corefunction(F,n,n)
@@ -1119,6 +1112,25 @@ def random_BN(N, n = 2, k = 0, STRONGLY_CONNECTED = True, indegree_distribution 
     
     return F, I, ns
 
+def get_perturbed_network(F,I,ns,control_target,control_source,type_of_control = 0,bool_list = []):
+    F_new = [f for f in F]
+    I_new = [i for i in I]
+    
+    if bool_list==[]:
+        bool_list = np.array(list(itertools.product([0,1],repeat=ns[control_target])))
+    
+    try:
+        index = list(I[control_target]).index(control_source)
+        F_new[control_target] = F_new[control_target][bool_list[:,index]==type_of_control]
+        dummy = list(I_new[control_target])
+        dummy.remove(control_source)
+        I_new[control_target] = np.array(dummy)
+    except ValueError:
+        print('source not regulating target')
+    
+    ns = list(map(len,I_new))
+    return F_new,I_new,ns
+
 
 # E = random_edge_list(N,ns,NO_SELF_REGULATION)
 
@@ -1240,7 +1252,7 @@ def absolute_bias(F,n=None):
         n = int(np.log2(len(F)))
     return abs(sum(F)*1./2**(n-1)-1)
 
-def num_of_attractors(F, I, N, nsim = 500, EXACT = False, bool_list = []):
+def num_of_attractors(F, I, N, nsim = 500, EXACT = False, bool_list = [], initial_sample_points = []):
     dictF = dict()
     attractors = []
     basin_sizes = []
@@ -1249,9 +1261,16 @@ def num_of_attractors(F, I, N, nsim = 500, EXACT = False, bool_list = []):
     if EXACT and bool_list == []:
         bool_list = list(map(np.array,list(itertools.product([0, 1], repeat = N))))
     
+    sampled_points = []
+    
     for i in range(nsim if not EXACT else 2**N):
-        x = np.random.randint(2, size = N) if not EXACT else bool_list[i]
-        xbin = bin2dec(x)
+        if initial_sample_points==[]:
+            x = np.random.randint(2, size = N) if not EXACT else bool_list[i]
+            xbin = bin2dec(x)
+            sampled_points.append(xbin)
+        else:
+            xbin = initial_sample_points[i]
+            x = dec2bin(xbin,N)
         queue = [xbin]        
         while True: #as long as we haven't reached an attractor state, keep updating
             try:
@@ -1277,16 +1296,24 @@ def num_of_attractors(F, I, N, nsim = 500, EXACT = False, bool_list = []):
                     pass
             queue.append(fxbin)
             xbin = fxbin
-    return (attractors, len(attractors), basin_sizes)
+    return (attractors, len(attractors), basin_sizes, attr_dict, initial_sample_points if initial_sample_points!=[] else sampled_points)
 
-def num_of_attractors_v2(F, I, N, nb = 500): #should be faster if we have longer average path lengths, not significantly though
+def num_of_attractors_v2(F, I, N, nb = 500, initial_sample_points=[]): #should be faster if we have longer average path lengths, not significantly though
     dictF = dict()
     attractors = []
     basin_sizes = []
     attr_dict = dict()
     
+    sampled_points = []
+    
     for i in range(nb):
-        x = np.random.randint(2, size = N)
+        if initial_sample_points==[]:
+            x = np.random.randint(2, size = N)
+            xbin = bin2dec(x)
+            sampled_points.append(xbin)
+        else:
+            xbin = initial_sample_points[i]
+            x = dec2bin(xbin,N)
         xbin = bin2dec(x)
         queue = [xbin]        
         while True: #as long as we haven't reached an attractor state, keep updating
@@ -1314,7 +1341,7 @@ def num_of_attractors_v2(F, I, N, nb = 500): #should be faster if we have longer
                     pass
             queue.append(fxbin)
             xbin = fxbin
-    return (attractors, len(attractors), basin_sizes)
+    return (attractors, len(attractors), basin_sizes, attr_dict, initial_sample_points if initial_sample_points!=[] else sampled_points)
 
 def num_of_attractors_exact(F, I, N,bool_list = []):
     dictF = dict()
@@ -1424,6 +1451,97 @@ def derrida_value(F, I, N, m, nsim = 500):
         Y = np.bitwise_xor(X, ones)
         total += d(update(F, I, N, X), update(F, I, N, Y))
     return total*1./nsim
+
+def get_robustness_from_attractor_dict_exact(attractor_dict,N,n_attractors,bool_list):
+    '''computes the proportion of neighbors in the Boolean hypercube
+    who, following synchronous update, transition to the same attractor,
+    
+    Note: attr_dict must contain a fully sampled state space'''
+    if n_attractors==1:
+        return 1
+    b_for_bin2dec = np.array([2**i for i in range(N)])[::-1]
+    count_of_neighbors_who_transition_to_same_attractor = 0
+    for xbin,x in enumerate(bool_list):
+        for i in range(N):
+            if x[i]==0:
+                ybin = xbin + b_for_bin2dec[i]
+            else:
+                continue
+            if attractor_dict[xbin] == attractor_dict[ybin]:
+                count_of_neighbors_who_transition_to_same_attractor += 1
+    return count_of_neighbors_who_transition_to_same_attractor/2**(N-1)/N
+
+def get_robustness_and_attractors_simulation(F, I, N, number_different_IC = 500): 
+    '''computes by sampling the attractor landscape as well as
+    the proportion of neighbors in the Boolean hypercube
+    who, following synchronous update, transition to the same attractor'''
+    dictF = dict()
+    attractors = []
+    basin_sizes = []
+    attractor_dict = dict()
+
+    degrees = list(map(len,I))
+    
+    b_for_bin2decs = [np.array([2**i for i in range(NN)])[::-1] for NN in range(max(degrees)+1)]
+    b_for_bin2dec = np.array([2**i for i in range(N)])[::-1]
+    
+    robustness_approximation = 0
+    
+    for i in range(number_different_IC):
+        index_attractors = []
+        for j in range(2):
+            if j==0:
+                x = np.random.randint(2, size = N)
+                xbin = np.dot(x,b_for_bin2dec)
+                x_old = x.copy()
+            else:
+                x = x_old
+                random_flipped_bit = np.random.choice(N)
+                x[random_flipped_bit] = 1 - x[random_flipped_bit]
+                xbin = np.dot(x,b_for_bin2dec)                
+            queue = [xbin]
+            while True: #as long as we haven't reached an attractor state, keep updating
+                try:
+                    fxbin = dictF[xbin]
+                except KeyError:
+                    fx = []
+                    for jj in range(N):
+                        #fx.append(F[i][sum([x[I[i]][degrees[i]-j-1]*b_for_bin2dec[j] for j in range(degrees[i])])])
+                        #fx.append(F[i][sum([x[I[i]][j]*b_for_bin2dec[j] for j in range(degrees[i])])])
+                        #fx.append(F[i][np.dot(x[I[i]] , b_for_bin2dec[N-degrees[i]:])])
+                        fx.append(F[jj][np.dot(x[I[jj]] , b_for_bin2decs[degrees[jj]])])
+                        
+                    #fx = update(F,I,N,x)
+                    fxbin = np.dot(fx,b_for_bin2dec)#sum([fx[N-i-1]*b_for_bin2dec[i] for i in range(N)])
+                    dictF.update({xbin:fxbin})
+                    x = np.array(fx) #works only because if we don't know fx now we also won't know F[fx] 
+                try: # check if this state has a known attractor
+                    index_attr = attractor_dict[fxbin] #returns a KeyError if we haven't identified fxbin as an attractor before
+                    basin_sizes[index_attr] += 1
+                    attractor_dict.update( list(zip( queue , [index_attr]*len(queue) )) )
+                    break
+                except KeyError:
+                    try: #check if fxbin is part of a new attractor
+                        index = queue.index(fxbin) #returns a ValueError if fxbin is not part of queue
+                        #new attractor
+                        index_attr = len(attractors)
+                        attractor_dict.update( list(zip( queue , [index_attr]*len(queue) )) )
+                        attractors.append(queue[index:])
+                        basin_sizes.append(1)
+                        break
+                    except ValueError:
+                        pass
+                queue.append(fxbin)
+                xbin = fxbin
+            index_attractors.append(index_attr)
+        if index_attractors[0] == index_attractors[1]:
+            robustness_approximation += 1
+        
+    return (attractors, len(attractors), basin_sizes, robustness_approximation/number_different_IC)
+
+
+
+
 
 def adjacency_matrix(I,constants=[],IGNORE_SELFLOOPS=False,IGNORE_CONSTANTS=True):
     n = len(I)
