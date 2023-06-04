@@ -18,7 +18,7 @@ C = NOT A
 ```
 This little example represents a model with three genes, A, B and C, and one external parameter D (which only appears on the right side of the equations).
 
-# canalizing_function_toolbox_v13
+# canalizing_function_toolbox_v13.py
 This file contains a variety of functions to analyze Boolean functions and Boolean networks. Each Python function has its own documentation. A Boolean function is considered as a list of 0-1 entries of length 2^n where n is the number of inputs. A Boolean network of N nodes is a list of N Boolean functions. For example,
 ```python
 f_A = [0,1,1,1]
