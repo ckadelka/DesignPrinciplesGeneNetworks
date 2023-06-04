@@ -11,8 +11,8 @@ The three key pieces of code are:
 
 # load_database13.py
 This file contains all code needed to load the Boolean network models, which are stored as text files in a standardized format as follows:
-'''text
+```text
 A = B OR C
 B = A OR (C AND D)
 C = NOT A
-'''
+```
