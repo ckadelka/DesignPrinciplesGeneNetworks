@@ -29,7 +29,10 @@ F = [f_A,f_B,f_C]
 describes the Boolean network from above. One can also get this via
 ```python
 import load_database13 as db
-F, I, degree, variables, constants = db.text_to_BN('A = B OR C\nB = A OR (C AND D)\nC = NOT A')
+
+with open('example.txt', 'w') as writer:
+    writer.write('A = B OR C\nB = A OR (C AND D)\nC = NOT A')
+F, I, degree, variables, constants = db.text_to_BN(folder='',textfile='example.txt')
 ```
 which yields in addition the adjacency matrix I, the in-degree of each node, the names of the variables (in order) and the names of potential external parameters.
 
