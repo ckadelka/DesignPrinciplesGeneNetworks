@@ -1,9 +1,0 @@
-CycD = [Extracellular signal}
-Rb = ( NOT CycD AND NOT CycE AND NOT CycA and NOT CycB )
-E2F = NOT Rb AND NOT CycA AND NOT CycB
-CycE = E2F AND NOT Rb
-CycA = ( E2F AND NOT Rb AND NOT Cdc20 AND NOT ( Cdh1 AND UbcH10 ) ) OR ( CycA AND NOT Rb AND NOT Cdc20 AND NOT ( Cdh1 AND UbcH10 ) )
-Cdc20 = CycB
-Cdh1 = ( NOT CycA AND NOT CycB ) OR Cdc20
-UbcH10 = NOT Cdh1 OR ( Cdh1 AND UbcH10 AND ( Cdc20 OR CycA OR CycB ) )
-CycB = ( NOT Cdc20 AND NOT Cdh1 )

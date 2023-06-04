@@ -19,8 +19,8 @@ d) k-canalizing
 a) canalizing depth of a Boolean function 
 b) the layer structure of a canaliizing Boolean function
 
-3) randomly generate (uniform distribution)
-a) non-degeneratedBoolean functions
+3) generate uniformly at random
+a) non-degenerated Boolean functions
 a) non-canalizing Boolean functions
 c) non-canalizing non-degenerated Boolean functions
 d) k-canalizing Boolean functions 
@@ -28,19 +28,22 @@ e) k-canalizing Boolean functions with a given layer structure
 f) Boolean functions with exact canalizing depth k
 g) Boolean functions with exact canalizing depth k with a given layer structure
 
-4) obtain some basic estimates of the magnitude of various diiscuss subclasses of Boolean functions
+4) generate uniformly at random Boolean networks with specific characterists (in-degree, canalization, strong connectedness)
 
-5) determine the 
+5) obtain some basic estimates of the magnitude of various subclasses of Boolean functions
+
+6) determine the 
 a) absolute bias of a Boolean function
 b) average sensitivity of a Boolean function
 """
 
+#13:  proper documentation added, deleted functions that became obsolete
 #1.9: new functionality added: calculate feed forward loops and feedback loops
-#1.5: added is_collectively_canalizing
+#1.5: added is_kset_canalizing
 #1.4: fixed issue with k==0 and EXACT_DEPTH==True in random_BN
 #1.3: Python3.7 compatible, kis passed to random_BN can also be [0] for random networks
 #1.2: added functionality to randomly create and analyze Boolean networks based on random or canalizing functions
-#1.1: fixed a couple issues in is_k_canalizing, is_k_canalizing_return_inputs_outputs_corefunction and get_layer_structure_given_outputs_corefunction
+#1.1: fixed a couple issues in is_k_canalizing, is_k_canalizing_return_inputs_outputs_corefunction and get_layerstructure_given_canalizing_outputs_and_corefunction
 
 ##Imports
 
@@ -62,8 +65,7 @@ try:
 except:
     LOADED_CANA=False
 
-## 0) Basics, helper functions
-
+## 0) Basics, helper functions    
 def tobin(x):
     '''returns the binary representation (in array form) of a decimal number'''
     return tobin(x//2) + [x%2] if x > 1 else [x]
@@ -120,20 +122,27 @@ def edgelist_to_I(edgelist):
         I[dict_var[targets[i]]].append(dict_var[regulators[i]])
     return I,var
 
-def bool_to_poly(f,bool_list=[]):
-    '''input: f, the right-hand side of a Boolean function (an array of length 2**n where n is the number of inputs)
+def bool_to_poly(f,left_side_of_truth_table=[]):
+    '''
+    This function transforms a Boolean function from truth table format to polynomial format.
+    The polynomial is in non-reduced disjunctive normal form (DNF).
+
+    inputs:
+        f: a Boolean function as a vector, i.e., the right-hand side of a truth table (a list of length 2^n where n is the number of inputs)
+    
+        left_side_of_truth_table (optional for speed-up): the left-hand side of the Boolean truth table of size 2^n x n
     
     output: a string of the Boolean function in disjunctive normal form (DNF)
     '''
     len_f = len(f)
     n=int(np.log2(len_f))
-    if bool_list==[]: #to reduce run time, this should be calculated once and then passed as argument
-        bool_list = list(itertools.product([0, 1], repeat = n))
+    if left_side_of_truth_table==[]: #to reduce run time, this should be calculated once and then passed as argument
+        left_side_of_truth_table = list(itertools.product([0, 1], repeat = n))
     num_values = 2**n   
     text = []
     for i in range(num_values):
         if f[i]==True:
-            monomial = '*'.join([('x%i' % (j+1)) if entry==1 else ('(1-x%i)' % (j+1)) for j,entry in enumerate(bool_list[i])])
+            monomial = '*'.join([('x%i' % (j+1)) if entry==1 else ('(1-x%i)' % (j+1)) for j,entry in enumerate(left_side_of_truth_table[i])])
             text.append(monomial)
     if text!=[]:
         return ' + '.join(text)
@@ -142,13 +151,16 @@ def bool_to_poly(f,bool_list=[]):
             
 ## 1) Methods to analyze Boolean functions
 
-def is_degenerated(F):
-    '''input: f, the right-hand side of a Boolean function (an array of length 2**n where n is the number of inputs)
+def is_degenerated(f):
+    '''
+    This function determines if a Boolean function contains some non-essential variables.
     
-    output: a Boolean value describing whether the function contains non-essential variables
+    input: f: a Boolean function as a vector, i.e., the right-hand side of a truth table (a list of length 2^n where n is the number of inputs)
+    
+    output: TRUE if f contains non-essential variables, FALSE if all variables are essential.
     '''    
-    len_F = len(F)
-    n=int(np.log2(len_F))
+    len_f = len(f)
+    n=int(np.log2(len_f))
     for i in range(n):
         dummy_add=(2**(n-1-i))
         dummy=np.arange(2**n)%(2**(n-i))//dummy_add
@@ -157,22 +169,26 @@ def is_degenerated(F):
             if dummy[j]==1:
                 continue
             else:
-                if F[j]!=F[j+dummy_add]:
+                if f[j]!=f[j+dummy_add]:
                     depends_on_i=True
                     break
         if depends_on_i==False:
             return True
     return False
 
-def get_essential_variables(F):
-    '''input: f, the right-hand side of a Boolean function (an array of length 2**n where n is the number of inputs)
+def get_essential_variables(f):
+    '''
+    This function determines the essential variables of a Boolean function 
+    by testing exhaustively whether a given variable is essential.
     
-    output: a Boolean value describing whether the function contains non-essential variables
+    input: f: a Boolean function as a vector, i.e., the right-hand side of a truth table (a list of length 2^n where n is the number of inputs)
+    
+    output: a list of all indices of variables, which are essential 
     '''    
-    if len(F)==0:
+    if len(f)==0:
         return []
-    len_F = len(F)
-    n=int(np.log2(len_F))
+    len_f = len(f)
+    n=int(np.log2(len_f))
     essential_variables  = list(range(n))
     for i in range(n):
         dummy_add=(2**(n-1-i))
@@ -182,53 +198,50 @@ def get_essential_variables(F):
             if dummy[j]==1:
                 continue
             else:
-                if F[j]!=F[j+dummy_add]:
+                if f[j]!=f[j+dummy_add]:
                     depends_on_i=True
                     break
         if depends_on_i==False:
             essential_variables.remove(i)
     return essential_variables 
 
-def number_essential_variables(F):
-    return len(get_essential_variables(F)) 
+def get_number_essential_variables(f):
+    '''
+    This function determines the number of essential variables of a Boolean function.
+    
+    input: f: a Boolean function as a vector, i.e., the right-hand side of a truth table (a list of length 2^n where n is the number of inputs)
+    
+    output: an integer, the number of essential variables of f  
+    '''        
+    return len(get_essential_variables(f)) 
 
-def get_essential_network(F,I):
-    import itertools
-    F_essential = []
-    I_essential = []
-    for f,regulators in zip(F,I):
-        if len(f)==0: #happens the actual degree of f was too large for it to be loaded
-            F_essential.append(f)
-            I_essential.append(regulators)
-            continue
-        elif sum(f)==0:
-            F_essential.append(np.array([0]))
-            I_essential.append(np.array([],dtype=int))
-            continue
-        elif sum(f)==len(f):
-            F_essential.append(np.array([1]))
-            I_essential.append(np.array([],dtype=int))
-            continue
-        essential_variables = np.array(get_essential_variables(f))
-        n = len(regulators)
-        non_essential_variables = np.array(list(set(list(range(n))) - set(essential_variables)))
-        if len(non_essential_variables)==0:
-            F_essential.append(f)
-            I_essential.append(regulators)
-        else:
-            bool_list = np.array(list(itertools.product([0, 1], repeat=n)))
-            F_essential.append((np.array(f)[np.sum(bool_list[:,non_essential_variables],1) == 0]))
-            I_essential.append((np.array(regulators)[essential_variables]))
-    return F_essential,I_essential
+def is_constant(f):
+    '''
+    This function checkes whether a Boolean function is constant.
 
-def is_constant(F):
-    return sum(F) in [0,len(F)]
+    input: f: a Boolean function as a vector, i.e., the right-hand side of a truth table (a list of length 2^n where n is the number of inputs)
+    
+    output: TRUE if f is constant, FALSE otherwise.    
+    '''
+    return sum(f) in [0,len(f)]
 
-def get_symmetry_groups(F,bool_list=[]):
-    len_F = len(F)
-    n=int(np.log2(len_F))
-    if bool_list==[] or bool_list.shape[0]!=len_F:
-        bool_list = np.array(list(itertools.product([0, 1], repeat=n)))
+def get_symmetry_groups(f,left_side_of_truth_table=[]):
+    '''
+    This function determines all symmetry groups of input variables for a Boolean function.
+    Two variables x,y are in the same symmetry group if f(x,y,z1,...,z_m) = f(y,x,z1,...,z_m) for all possible inputs to the other variables z1,...,z_m
+
+    input:
+        f: a Boolean function as a vector, i.e., the right-hand side of a truth table (a list of length 2^n where n is the number of inputs)
+    
+        left_side_of_truth_table (optional for speed-up): the left-hand side of the Boolean truth table of size 2^n x n
+    
+    output: a list of m lists where m is the number of symmetry groups of f 
+    and each inner list contains the indices of all variables in the same symmetry group.
+    '''
+    len_f = len(f)
+    n=int(np.log2(len_f))
+    if left_side_of_truth_table==[] or left_side_of_truth_table.shape[0]!=len_f:
+        left_side_of_truth_table = np.array(list(itertools.product([0, 1], repeat=n)))
     symmetry_groups = []
     left_to_check = np.ones(n)
     for i in range(n):
@@ -239,34 +252,67 @@ def get_symmetry_groups(F,bool_list=[]):
             left_to_check[i]=0
         for j in range(i+1,n):
             diff = sum(2**np.arange(n-i-2,n-j-2,-1))
-            for ii,x in enumerate(bool_list):
-                if x[i]!=x[j] and x[i]==0 and F[ii]!=F[ii+diff]:
+            for ii,x in enumerate(left_side_of_truth_table):
+                if x[i]!=x[j] and x[i]==0 and f[ii]!=f[ii+diff]:
                     break
             else:
                 left_to_check[j] = 0
                 symmetry_groups[-1].append(j)
     return symmetry_groups
 
-def is_canalizing(F,n):
-    if type(F) == list:
-        F = np.array(F)
+def is_canalizing(f,n=-1):
+    '''
+    This function determines if a Boolean function is canalizing.
+    A Boolean function f(x_1,...,x_n) is canalizing if it is canalizing in at least one variable.
+    A Boolean function f(x_1,...,x_n) is canalizing in x_i if f(x_1,...,x_i=a,...,x_n) = b for some a,b in [0,1] and for all x_1,...,x_{i-1},x_{i+1},...,x_n in [0,1].
+
+    input:
+        f: a Boolean function as a vector, i.e., the right-hand side of a truth table (a list of length 2^n where n is the number of inputs)
+    
+        n (optional for minor speed-up): number of variables of f
+    
+    output: TRUE if f is canalizing, FALSE otherwise.
+    '''
+    if type(f) == list:
+        f = np.array(f)
+    if n==-1:
+        n=int(np.log2(len(f)))
     desired_value = 2**(n-1)
     T = np.array(list(itertools.product([0, 1], repeat=n))).T
     A = np.r_[T,1-T]
-    AtimesF = np.dot(A,F)
-    if np.any(AtimesF==desired_value):
+    Atimesf = np.dot(A,f)
+    if np.any(Atimesf==desired_value):
         return True
-    elif np.any(AtimesF==0):
+    elif np.any(Atimesf==0):
         return True
     else:
         return False
 
-def is_collectively_canalizing(F,k,n):
-    '''computationally poor check'''
-    if type(F) == list:
-        F = np.array(F)
+def is_kset_canalizing(f,k,n=-1):
+    '''
+    This function determines if a Boolean function is k-set canalizing.
+    A Boolean function f(x_1,...,x_n) is k-set canalizing 
+    if there exists a set of k variables such that if this set of variables takes on certain inputs, 
+    the output of f is determined, irrespective of the input to the n-k other variables.
+
+    input:
+        f: a Boolean function as a vector, i.e., the right-hand side of a truth table (a list of length 2^n where n is the number of inputs)
+    
+        k, an integer (meaningful integers k in {0,1,...,n})
+    
+        n (optional for minor speed-up): number of variables of f
+    
+    output: TRUE if f is k-set canalizing, FALSE otherwise.
+    
+    references:
+        Kadelka, C., Keilty, B., & Laubenbacher, R. (2023). Collectively canalizing Boolean functions. Advances in Applied Mathematics, 145, 102475.
+    '''
+    if type(f) == list:
+        F = np.array(f)
     if k==0:
         return is_constant(F)
+    if n==-1:
+        n=int(np.log2(len(f)))
     desired_value = 2**(n-k)
     T = np.array(list(itertools.product([0, 1], repeat=n))).T
     A = np.r_[T,1-T]
@@ -289,36 +335,40 @@ def is_collectively_canalizing(F,k,n):
     is_there_canalization = 0 in AktimesF or desired_value in AktimesF
     return is_there_canalization
     
-def get_proportion_of_collectively_canalizing_input_sets_wrong(F,k,n,bool_list=[]):
-    if type(F) == list:
-        F = np.array(F)
-    if k==0:
-        return float(is_constant(F))
-    desired_value = 2**(n-k)
-    if bool_list == []:
-        T = np.array(list(itertools.product([0, 1], repeat=n))).T
-    else:
-        T = np.array(bool_list).T        
-    A = np.r_[T,1-T]
-    Ak = []                
-    for indices in itertools.combinations(range(2*n),k):
-        dummy = np.sum(A[np.array(indices),:],0)==k
-        if sum(dummy)==desired_value:
-            Ak.append(dummy)
-    Ak = np.array(Ak)
-    is_there_canalization = np.in1d(np.dot(Ak,F),[0,desired_value])    
-    return sum(is_there_canalization)/len(is_there_canalization)
+def get_proportion_of_collectively_canalizing_input_sets(f,k,n=-1,left_side_of_truth_table=[],verbose=False):
+    '''
+    A Boolean function f(x_1,...,x_n) is k-set canalizing 
+    if there exists a set of k variables such that if this set of variables takes on certain inputs, 
+    the output of f is determined, irrespective of the input to the n-k other variables.
+    For a given k, this function computes the probability that a k-set canalizes f.
 
-def get_proportion_of_collectively_canalizing_input_sets(F,k,n,bool_list=[],verbose=False):
-    if type(F) == list:
-        F = np.array(F)
+    input:
+        f: a Boolean function as a vector, i.e., the right-hand side of a truth table (a list of length 2^n where n is the number of inputs)
+    
+        k, an integer (meaningful integers k in {0,1,...,n})
+    
+        n (optional for minor speed-up): number of variables of f
+        
+        left_side_of_truth_table (optional for speed-up): the left-hand side of the Boolean truth table of size 2^n x n
+
+        verbose (optional bool): TRUE to print all canalizing k-sets
+    
+    output: TRUE if f is k-set canalizing, FALSE otherwise.
+    
+    references:
+        Kadelka, C., Keilty, B., & Laubenbacher, R. (2023). Collectively canalizing Boolean functions. Advances in Applied Mathematics, 145, 102475.
+    '''
+    if type(f) == list:
+        f = np.array(f)
     if k==0:
-        return float(is_constant(F))
+        return float(is_constant(f))
+    if n==-1:
+        n=int(np.log2(len(f)))
     desired_value = 2**(n-k)
-    if bool_list == []:
+    if left_side_of_truth_table == []:
         T = np.array(list(itertools.product([0, 1], repeat=n))).T
     else:
-        T = np.array(bool_list).T  
+        T = np.array(left_side_of_truth_table).T  
     Tk = list(itertools.product([0, 1], repeat=k))
     A = np.r_[T,1-T]
     Ak = []                
@@ -328,106 +378,231 @@ def get_proportion_of_collectively_canalizing_input_sets(F,k,n,bool_list=[],verb
             dummy = np.sum(A[indices_values,:],0)==k
             if sum(dummy)==desired_value:
                 Ak.append(dummy)
-                if verbose and np.dot(dummy,F) in [0,desired_value]:
-                    print(indices,canalizing_inputs,indices_values,np.dot(dummy,F))
+                if verbose and np.dot(dummy,f) in [0,desired_value]:
+                    print(indices,canalizing_inputs,indices_values,np.dot(dummy,f))
             elif verbose:
                 print(indices,canalizing_inputs,sum(dummy),'a')
     Ak = np.array(Ak)
-    is_there_canalization = np.in1d(np.dot(Ak,F),[0,desired_value])    
+    is_there_canalization = np.in1d(np.dot(Ak,f),[0,desired_value])    
     return sum(is_there_canalization)/len(is_there_canalization)
 
 def binom(n,k):
     import scipy.special
     return scipy.special.binom(n,k)
 
-def get_canalizing_strength(F,bool_list=[]):
-    nfloat = np.log2(len(F))
+def get_canalizing_strength(f,left_side_of_truth_table=[]):
+    '''
+    This function computes the canalizing strength of a Boolean function by exhaustive enumeration (slow for functions with many variables).
+    The canalizing strength is a weighted average of the 1- to (n-1)-set canalizing proportions.
+    It is 0 for the least canalizing functions, Boolean parity functions (e.g., f= (x1 + x2 + ... + xn) % 2 == 0)
+    and is 1 for the most canalizing non-constant functions, nested canalizing functions with one layer (e.g. f = x1 & x2 & ... & xn)
+
+    input:
+        f: a Boolean function as a vector, i.e., the right-hand side of a truth table (a list of length 2^n where n is the number of inputs)
+        
+        left_side_of_truth_table (optional for speed-up): the left-hand side of the Boolean truth table of size 2^n x n
+    
+    output: a float, describing the canalizing strength of f
+    
+    references:
+        Kadelka, C., Keilty, B., & Laubenbacher, R. (2023). Collectively canalizing Boolean functions. Advances in Applied Mathematics, 145, 102475.
+    '''
+    nfloat = np.log2(len(f))
     n = int(nfloat)
     assert abs(n-nfloat)<1e-10, "F needs to be of length 2^n for some n>1"
     assert n>1, "Canalizing strength is only defined for Boolean functions with n>1 inputs"
     res = []
     for k in range(1,n):
-        res.append(get_proportion_of_collectively_canalizing_input_sets(F,k,n,bool_list=bool_list))
+        res.append(get_proportion_of_collectively_canalizing_input_sets(f,k,n,left_side_of_truth_table=left_side_of_truth_table))
     return np.mean(np.multiply(res,2**np.arange(1,n)/(2**np.arange(1,n)-1))),res
 
-def compute_kset_canalizing_proportion_for_ncf(k,kis):
-    '''Theorem 3.3 in "Collectively canalizing Boolean functions"'''
-    r = len(kis)
-    n = sum(kis)
-    assert min(kis) >= 1 and kis[-1]>= 2, "each layer must contain at least one variable (the last layer at least two)"
+def compute_exact_kset_canalizing_proportion_for_ncf_with_specific_layerstructure(k,layerstructure_NCF):
+    '''
+    This function implements Theorem 3.3 in [1]. 
+    It computes the exact k-set canalizing proportion for a Boolean NCF with known layer structure.
+    
+    input:
+        k, an integer (meaningful integers k in {0,1,...,n}) where n is the number of variables of the NCF
+        
+        layerstructure_NCF: [k_1,..., k_r] a list of integers describing the number of variables in each layer of an NCF,
+        k_i >= 1, and k_r >= 2 unless r = n = 1. 
+    
+    output: a float, describing the k-set canalizing proportion for the NCF with the provided layer structure
+    
+    references:
+        [1] Kadelka, C., Keilty, B., & Laubenbacher, R. (2023). Collectively canalizing Boolean functions. Advances in Applied Mathematics, 145, 102475.
+    '''
+    r = len(layerstructure_NCF)
+    n = sum(layerstructure_NCF)
+    assert min(layerstructure_NCF) >= 1 and (layerstructure_NCF[-1]>= 2 or n==1), "each layer must contain at least one variable (the last layer at least two unless n==1)"
     magnitudes = []
     for t in range(r):
         number_of_input_sets = 0
-        for c in range(1,min( k-sum(kis[:t][::-2]) , kis[t] )+1):
-            for d in range(0,min(k-sum(kis[:t][::-2])-c , sum(kis[:max(0,t-1)][::-2]))+1):
-                binom1 = binom( kis[t] , c )
-                binom2 = binom( sum(kis[:max(0,t-1)][::-2]) , d )
-                binom3 = binom( n-sum(kis[:t+1]) , k - sum(kis[:t][::-2]) - c - d)
-                number_of_inputs_that_canalize_for_selected_variable_set = sum([2**( k - sum(kis[:t][::-2]) - j - d ) for j in range(1,c+1)])
+        for c in range(1,min( k-sum(layerstructure_NCF[:t][::-2]) , layerstructure_NCF[t] )+1):
+            for d in range(0,min(k-sum(layerstructure_NCF[:t][::-2])-c , sum(layerstructure_NCF[:max(0,t-1)][::-2]))+1):
+                binom1 = binom( layerstructure_NCF[t] , c )
+                binom2 = binom( sum(layerstructure_NCF[:max(0,t-1)][::-2]) , d )
+                binom3 = binom( n-sum(layerstructure_NCF[:t+1]) , k - sum(layerstructure_NCF[:t][::-2]) - c - d)
+                number_of_inputs_that_canalize_for_selected_variable_set = sum([2**( k - sum(layerstructure_NCF[:t][::-2]) - j - d ) for j in range(1,c+1)])
                 number_of_input_sets += binom1 * binom2 * binom3 * number_of_inputs_that_canalize_for_selected_variable_set
         magnitudes.append(number_of_input_sets)
     #for the case where the non-canalizing output value can be reached in the evaluation process, add:
-    if k >= sum(kis[-1::-2]):
-        magnitudes.append( binom( n-sum(kis[-1::-2]), k-sum(kis[-1::-2]) ) ) 
+    if k >= sum(layerstructure_NCF[-1::-2]):
+        magnitudes.append( binom( n-sum(layerstructure_NCF[-1::-2]), k-sum(layerstructure_NCF[-1::-2]) ) ) 
     else:
         magnitudes.append( 0 ) 
-    return sum(magnitudes)/(2**k * binom(n,k)), magnitudes
+    return sum(magnitudes)/(2**k * binom(n,k))#, magnitudes
 
 
 #test using this code:
 # k=3; kis=[2,1,2]; 
 # print(compute_kset_canalizing_proportion_for_ncf(k,kis)); 
-# print(can.get_canalizing_strength(can.random_k_canalizing_with_specific_weight(sum(kis),kis))[1][k-1])
+# print(can.get_canalizing_strength(can.random_k_canalizing_with_specific_layerstructure(sum(kis),kis))[1][k-1])
 
-def is_k_canalizing(F,k,n):
+def is_k_canalizing(f,k,n=-1):
+    '''
+    This function determines if a Boolean function is k-canalizing.
+    A Boolean function f(x_1,...,x_n) is k-canalizing if it has at least k conditionally canalizing variables.
+    In other words, if 
+    1. f is canalizing, and if
+    2. the subfunction of f when the canalizing variable takes on its non-canalizing function is canalizing, and if
+    3. the subfunction of the subfunction when its canalizing variable takes on its non-canalizing function is canalizing, etc. 
+    The number of such variables is the canalizing depth of a Boolean function 
+    and a function with canalizing depth >= k is k-canalizing.
+    
+    input:
+        f: a Boolean function as a vector, i.e., the right-hand side of a truth table (a list of length 2^n where n is the number of inputs)
+    
+        k, an integer (meaningful integers k in {0,1,...,n}).
+        Note: any function is 0-canalizing. Only NCFs are n-canalizing.
+    
+        n (optional for minor speed-up): number of variables of f
+    
+    output: TRUE if f is k-canalizing, FALSE otherwise.
+    
+    references:
+        He, Q., & Macauley, M. (2016). Stratification and enumeration of Boolean functions by canalizing depth. Physica D: Nonlinear Phenomena, 314, 1-8.
+
+        Dimitrova, E., Stigler, B., Kadelka, C., & Murrugarra, D. (2022). Revealing the canalizing structure of Boolean functions: Algorithms and applications. Automatica, 146, 110630.
+    '''
     if k>n:
         return False
     if k==0:
         return True
-    w = sum(F)
-    if w == 0 or w == 2**n: #constant F
+    if n==-1:
+        n=int(np.log2(len(f)))
+    w = sum(f) #Hamming weight of f
+    if w == 0 or w == 2**n: #constant f
         return False
-    if type(F) == list:
-        F = np.array(F)
+    if type(f) == list:
+        f = np.array(f)
     desired_value = 2**(n-1)
     T = np.array(list(itertools.product([0, 1], repeat=n))).T
     A = np.r_[T,1-T]
     try: #is 1 canalized output for one of the variables
-        index = list(np.dot(A,F)).index(desired_value)
-        newF = F[np.where(A[index]==0)[0]]
-        return is_k_canalizing(newF,k-1,n-1)
+        index = list(np.dot(A,f)).index(desired_value)
+        new_f = f[np.where(A[index]==0)[0]]
+        return is_k_canalizing(new_f,k-1,n-1)
     except ValueError:
         try: #is 0 canalized output for one of the variables
-            index = list(np.dot(A,1-F)).index(desired_value)
-            newF = F[np.where(A[index]==0)[0]]
-            return is_k_canalizing(newF,k-1,n-1)
+            index = list(np.dot(A,1-f)).index(desired_value)
+            new_f = f[np.where(A[index]==0)[0]]
+            return is_k_canalizing(new_f,k-1,n-1)
         except ValueError:
             return False
+    
 
-def is_k_canalizing_return_inputs_outputs_corefunction(F,k,n,can_inputs=np.array([],dtype=int),can_outputs=np.array([],dtype=int)):
+def is_k_canalizing_return_inputs_outputs_corefunction(f,k,n,can_inputs=np.array([],dtype=int),can_outputs=np.array([],dtype=int)):
+    '''
+    This function determines if a Boolean function is k-canalizing.
+    A Boolean function f(x_1,...,x_n) is k-canalizing if it has at least k conditionally canalizing variables.
+    In other words, if 
+    1. f is canalizing, and if
+    2. the subfunction of f when the canalizing variable takes on its non-canalizing function is canalizing, and if
+    3. the subfunction of the subfunction when its canalizing variable takes on its non-canalizing function is canalizing, etc. 
+    The number of such variables is the canalizing depth of a Boolean function 
+    and a function with canalizing depth >= k is k-canalizing.
+    
+    input:
+        f: a Boolean function as a vector, i.e., the right-hand side of a truth table (a list of length 2^n where n is the number of inputs)
+    
+        k, an integer (meaningful integers k in {0,1,...,n}).
+        Note: any function is 0-canalizing. Only NCFs are n-canalizing.
+    
+        n (optional for minor speed-up): number of variables of f
+    
+    output: 
+        bool: TRUE if f is k-canalizing, FALSE otherwise.
+        
+        can_inputs: list of the first k canalizing input values of f if f is k-canalizing, otherwise list of all canalizing input values
+
+        can_outputs: list of the first k canalized output values of f if f is k-canalizing, otherwise list of all canalized output values
+
+        core_function: Boolean core function in n-k variables if f is k-canalizing, otherwise Boolean core function in all m>n-k non-conditionally canalizing variables
+    
+    references:
+        He, Q., & Macauley, M. (2016). Stratification and enumeration of Boolean functions by canalizing depth. Physica D: Nonlinear Phenomena, 314, 1-8.
+
+        Dimitrova, E., Stigler, B., Kadelka, C., & Murrugarra, D. (2022). Revealing the canalizing structure of Boolean functions: Algorithms and applications. Automatica, 146, 110630.
+    '''
     if k==0:
-        return (True,can_inputs,can_outputs,F)
-    w = sum(F)
-    if w == 0 or w == 2**n: #constant F
-        return (False,can_inputs,can_outputs,F)
-    if type(F) == list:
-        F = np.array(F)
+        return (True,can_inputs,can_outputs,f)
+    w = sum(f)
+    if w == 0 or w == 2**n: #constant f
+        return (False,can_inputs,can_outputs,f)
+    if type(f) == list:
+        f = np.array(f)
     desired_value = 2**(n-1)
     T = np.array(list(itertools.product([0, 1], repeat=n))).T
     A = np.r_[T,1-T]
     try: #is 1 canalized output for one of the variables
-        index = list(np.dot(A,F)).index(desired_value)
-        newF = F[np.where(A[index]==0)[0]]
-        return is_k_canalizing_return_inputs_outputs_corefunction(newF,k-1,n-1,np.append(can_inputs,int(index<n)),np.append(can_outputs,1))
+        index = list(np.dot(A,f)).index(desired_value)
+        new_f = f[np.where(A[index]==0)[0]]
+        return is_k_canalizing_return_inputs_outputs_corefunction(new_f,k-1,n-1,np.append(can_inputs,int(index<n)),np.append(can_outputs,1))
     except ValueError:
         try: #is 0 canalized output for one of the variables
-            index = list(np.dot(A,1-F)).index(desired_value)
-            newF = F[np.where(A[index]==0)[0]]
-            return is_k_canalizing_return_inputs_outputs_corefunction(newF,k-1,n-1,np.append(can_inputs,int(index<n)),np.append(can_outputs,0))
+            index = list(np.dot(A,1-f)).index(desired_value)
+            new_f = f[np.where(A[index]==0)[0]]
+            return is_k_canalizing_return_inputs_outputs_corefunction(new_f,k-1,n-1,np.append(can_inputs,int(index<n)),np.append(can_outputs,0))
         except ValueError:
-            return (False,can_inputs,can_outputs,F)     
+            return (False,can_inputs,can_outputs,f)     
 
 def is_k_canalizing_return_inputs_outputs_corefunction_order(F,k,n,can_inputs=np.array([],dtype=int),can_outputs=np.array([],dtype=int),can_order=np.array([],dtype=int),variables=[]):
+    '''
+    This function determines if a Boolean function is k-canalizing.
+    A Boolean function f(x_1,...,x_n) is k-canalizing if it has at least k conditionally canalizing variables.
+    In other words, if 
+    1. f is canalizing, and if
+    2. the subfunction of f when the canalizing variable takes on its non-canalizing function is canalizing, and if
+    3. the subfunction of the subfunction when its canalizing variable takes on its non-canalizing function is canalizing, etc. 
+    The number of such conditionally canalizing variables is the canalizing depth of f, 
+    and a function with canalizing depth >= k is k-canalizing.
+    
+    input:
+        f: a Boolean function as a vector, i.e., the right-hand side of a truth table (a list of length 2^n where n is the number of inputs)
+    
+        k, an integer (meaningful integers k in {0,1,...,n}).
+        Note: any function is 0-canalizing. Only NCFs are n-canalizing.
+    
+        n (optional for minor speed-up): number of variables of f
+    
+    output: 
+        bool: TRUE if f is k-canalizing, FALSE otherwise.
+        
+        can_inputs: list of the first k canalizing input values of f if f is k-canalizing, otherwise list of all canalizing input values
+
+        can_outputs: list of the first k canalized output values of f if f is k-canalizing, otherwise list of all canalized output values
+
+        core_function: Boolean core function in n-k variables if f is k-canalizing, otherwise Boolean core function in all m>n-k non-conditionally canalizing variables
+    
+        can_order: list of the indices of the first k conditionally canalizing variables if f is k-canalizing, 
+        otherwise list of the indices of all conditionally canalizing variables  
+    
+    references:
+        He, Q., & Macauley, M. (2016). Stratification and enumeration of Boolean functions by canalizing depth. Physica D: Nonlinear Phenomena, 314, 1-8.
+
+        Dimitrova, E., Stigler, B., Kadelka, C., & Murrugarra, D. (2022). Revealing the canalizing structure of Boolean functions: Algorithms and applications. Automatica, 146, 110630.
+    '''
     if k==0:
         return (True,can_inputs,can_outputs,F,can_order)
     w = sum(F)
@@ -456,269 +631,313 @@ def is_k_canalizing_return_inputs_outputs_corefunction_order(F,k,n,can_inputs=np
         except ValueError:
             return (False,can_inputs,can_outputs,F,can_order)    
 
-#def get_layers_directly(F,can_inputs=np.array([],dtype=int),can_outputs=np.array([],dtype=int),can_order=np.array([],dtype=int),variables=[]):
-def get_layers_directly(F):
-    n = int(np.log2(len(F)))
-    can_inputs=np.array([],dtype=int)
-    can_outputs=np.array([],dtype=int)
-    can_order=np.array([],dtype=int)
-    w = sum(F)
-    if w == 0 or w == 2**n: #constant F
-        return (False,can_inputs,can_outputs,F,can_order)
-    if type(F) == list:
-        F = np.array(F)
-    desired_value = 2**(n-1)
-    T = np.array(list(itertools.product([0, 1], repeat=n))).T
-    A = np.r_[T,1-T]
-        
-    dot1 = np.dot(A,F)
-    dot0 = np.dot(A,1-F)
-    while True:
-        indices1 = np.where(dot1==desired_value)[0]
-        indices0 = np.where(dot0==desired_value)[0]
-        if len(indices1)>0:
-            inputs = 1-indices1//n
-            outputs = np.ones(len(indices1),dtype=int)
-            orders = indices1%n
-            print(indices1,inputs,outputs,orders)
-            
-        elif len(indices0):        
-            inputs = 1-indices0//n
-            outputs = np.zeros(len(indices0),dtype=int)
-            orders = indices0%n
-            print(indices0,inputs,outputs,orders) 
-        else:
-            break
-        can_inputs = np.append(can_inputs,inputs)
-        can_outputs = np.append(can_outputs,outputs)
-        can_order = np.append(can_order,orders)
-
-        dummy = np.arange(2*n)%n
-        which = np.ones(2*n,dtype=bool)
-        for index in indices0:
-            which[dummy==index%n] = False
-        for index in indices1:
-            which[dummy==index%n] = False 
-        dot0 = dot0[which]
-        dot1 = dot1[which]
-        n = len(dot1)//2
-        dot0 = dot0//2**len(inputs)
-        dot1 = dot1//2**len(inputs)
-        desired_value = desired_value/2**len(dot1)
-        F = F[np.array(list(set.intersection(*[] + [set(np.where(A[index]==0)[0]) for index,INPUT in zip(indices1,inputs)])))]
-
-    return (can_inputs,can_outputs,F,can_order)
+def find_layers(f,can_inputs=np.array([],dtype=int),can_outputs=np.array([],dtype=int),can_order=np.array([],dtype=int),variables=[],depth=0,number_layers=0):
+    '''
+    find_layers from https://github.com/ckadelka/BooleanCanalization/blob/main/find_layers.py
     
-def get_layers_directly_v2(F,can_inputs=np.array([],dtype=int),can_outputs=np.array([],dtype=int),can_order=np.array([],dtype=int),variables=[],depth=0,number_layers=0):
-    n = int(np.log2(len(F)))
-    w = sum(F)
-    if w == 0 or w == 2**n: #constant F
-        return (depth,number_layers,can_inputs,can_outputs,F,can_order)
+    By [1], any non-zero Boolean function has a unqiue standard monomial form, in which
+    all conditionally canalizing variables are distributed into layers of importance.
+    This function determines the canalizing layer format of a Boolean function.
+    It is Algorithm 2 from [2]. For a fast implementation of Algorithm 2, see the original github repo.
+    
+    input:
+        f: a Boolean function as a vector, i.e., the right-hand side of a truth table (a list of length 2^n where n is the number of inputs)
+
+        all other optional arguments must not be specified, for recursion only
+    
+    output: 
+        depth: integer k>=0, number of conditionally canalizing variables
+            
+        number_layers: integer >=0, number of different layers
+        
+        can_inputs: list of all k canalizing input values of f 
+
+        can_outputs: list of all k canalized output values of f
+
+        core_polynomial: Boolean core polynomial in all n-k non-conditionally canalizing variables 
+    
+        can_order: list of the indices of all conditionally canalizing variables
+    
+    references:
+        [1] He, Q., & Macauley, M. (2016). Stratification and enumeration of Boolean functions by canalizing depth. Physica D: Nonlinear Phenomena, 314, 1-8.
+
+        [2] Dimitrova, E., Stigler, B., Kadelka, C., & Murrugarra, D. (2022). Revealing the canalizing structure of Boolean functions: Algorithms and applications. Automatica, 146, 110630.
+    '''
+    n = int(np.log2(len(f)))
+    w = sum(f)
+    if w == 0 or w == 2**n: #constant f
+        return (depth,number_layers,can_inputs,can_outputs,f,can_order)
     if type(variables)==np.ndarray:
         variables = list(variables)
     if variables == []:
         variables = list(range(n))
-    if type(F) == list:
-        F = np.array(F)
+    if type(f) == list:
+        f = np.array(f)
     desired_value = 2**(n-1)
     T = np.array(list(itertools.product([0, 1], repeat=n))).T
     A = np.r_[T,1-T]
         
-    indices1 = np.where(np.dot(A,F)==desired_value)[0]
-    indices0 = np.where(np.dot(A,1-F)==desired_value)[0]
+    indices1 = np.where(np.dot(A,f)==desired_value)[0]
+    indices0 = np.where(np.dot(A,1-f)==desired_value)[0]
     if len(indices1)>0:
-        inputs = 1-indices1//n
+        sorted_order = sorted(range(len(indices1)),key=lambda x: (indices1%n)[x])
+        inputs = (1-indices1//n)[np.array(sorted_order)]
         outputs = np.ones(len(indices1),dtype=int)
         new_canalizing_variables = []
         for index in np.sort(indices1%n)[::-1]:
             new_canalizing_variables.append(variables.pop(index))
         new_canalizing_variables.reverse()
-        newF = F[np.sort(list(set.intersection(*[] + [set(np.where(A[index]==0)[0]) for index,INPUT in zip(indices1,inputs)])))]
-        return get_layers_directly_v2(newF,np.append(can_inputs,inputs),np.append(can_outputs,outputs),np.append(can_order,new_canalizing_variables),variables,depth+len(new_canalizing_variables),number_layers+1)
-    elif len(indices0):        
-        inputs = 1-indices0//n
+        new_f = f[np.sort(list(set.intersection(*[] + [set(np.where(A[index]==0)[0]) for index,INPUT in zip(indices1,inputs)])))]
+        return find_layers(new_f,np.append(can_inputs,inputs),np.append(can_outputs,outputs),np.append(can_order,new_canalizing_variables),variables,depth+len(new_canalizing_variables),number_layers+1)
+    elif len(indices0): 
+        sorted_order = sorted(range(len(indices0)),key=lambda x: (indices0%n)[x])
+        inputs = (1-indices0//n)[np.array(sorted_order)]
         outputs = np.zeros(len(indices0),dtype=int)
-        new_canalizing_variables = []
+        new_canalizing_variables = []#variables[indices0%n]
         for index in np.sort(indices0%n)[::-1]:
             new_canalizing_variables.append(variables.pop(index))
         new_canalizing_variables.reverse()
-        newF = F[np.sort(list(set.intersection(*[] + [set(np.where(A[index]==0)[0]) for index,INPUT in zip(indices0,inputs)])))]
-        return get_layers_directly_v2(newF,np.append(can_inputs,inputs),np.append(can_outputs,outputs),np.append(can_order,new_canalizing_variables),variables,depth+len(new_canalizing_variables),number_layers+1)
+        new_f = f[np.sort(list(set.intersection(*[] + [set(np.where(A[index]==0)[0]) for index,INPUT in zip(indices0,inputs)])))]
+        return find_layers(new_f,np.append(can_inputs,inputs),np.append(can_outputs,outputs),np.append(can_order,new_canalizing_variables),variables,depth+len(new_canalizing_variables),number_layers+1)
     else:
-        return (depth,number_layers,can_inputs,can_outputs,F,can_order)
+        return (depth,number_layers,can_inputs,can_outputs,f,can_order)
 
-
-def get_all_canalizing_variables_of_boolean_function(rule,or_symbol = 'or', and_symbol = 'and', not_symbol='not',can_inputs=np.array([],dtype=int),can_outputs=np.array([],dtype=int),can_variables=np.array([],dtype=int)):
-    #requires the rule as a generalized DNF or CNF, several smaller parts separated by or (DNF) or and (CNF)
-    #rule='(   (  x24  &   (   (   (  x4   |  x13   |  x10   |  x14   |  x9   |  x22   |  x25   |  x7   |  x3   |  x21   |  x17   |  x6   |  x18   |  x15   |  x26  )   )   )       )   &   ~   (  x19   )   )    |   (   (  x8   )   &   ~   (  x19   )   )    |   (   (  x5  &   (   (   (  x4   |  x13   |  x10   |  x14   |  x9   |  x22   |  x25   |  x7   |  x3   |  x21   |  x17   |  x6   |  x18   |  x15   |  x26  )   )   )       )   &   ~   (  x19   )   )    |   (   (  x12  &   (   (   (  x4   |  x13   |  x10   |  x14   |  x9   |  x22   |  x25   |  x7   |  x3   |  x21   |  x17   |  x6   |  x18   |  x15   |  x26  )   )   )       )   &   ~   (  x19   )   )    |   (   (  x23   )   &   ~   (  x19   )   )    |   (   (  x1  &   (   (   (  x4   |  x13   |  x10   |  x14   |  x9   |  x22   |  x25   |  x7   |  x3   |  x21   |  x17   |  x6   |  x18   |  x15   |  x26  )   )   )       )   &   ~   (  x19   )   )    |   (   (  x16  &   (   (   (  x4   |  x13   |  x10   |  x14   |  x9   |  x22   |  x25   |  x7   |  x3   |  x21   |  x17   |  x6   |  x18   |  x15   |  x26  )   )   )       )   &   ~   (  x19   )   )    |   (   (  x0  &   (   (   (  x4   |  x13   |  x10   |  x14   |  x9   |  x22   |  x25   |  x7   |  x3   |  x21   |  x17   |  x6   |  x18   |  x15   |  x26  )   )   )       )   &   ~   (  x19   )   )    |   (   (  x20  &   (   (   (  x4   |  x13   |  x10   |  x14   |  x9   |  x22   |  x25   |  x7   |  x3   |  x21   |  x17   |  x6   |  x18   |  x15   |  x26  )   )   )       )   &   ~   (  x19   )   )    |   (   (  x11  &   (   (   (  x4   |  x13   |  x10   |  x14   |  x9   |  x22   |  x25   |  x7   |  x3   |  x21   |  x17   |  x6   |  x18   |  x15   |  x26  )   )   )       )   &   ~   (  x19   )   )    |   (   (  x2  &   (   (   (  x4   |  x13   |  x10   |  x14   |  x9   |  x22   |  x25   |  x7   |  x3   |  x21   |  x17   |  x6   |  x18   |  x15   |  x26  )   )   )       )   &   ~   (  x19   )   )'
-    python_or = '|'
-    python_and = '&'
-    python_not = '~'
-    mod_rule = rule.replace(or_symbol,' %s ' % or_symbol).replace(and_symbol,' %s ' % and_symbol).replace(not_symbol,' %s ' % not_symbol).replace(or_symbol,python_or).replace(and_symbol,python_and).replace(not_symbol,python_not).replace('[','').replace(']','')
-    INRULE = False
-    parts = []
-    count_open_parantheses=0
-    symbols_between_rules = []
-    for char in mod_rule:
-        if char=='(':
-            count_open_parantheses+=1
-            if count_open_parantheses==1 and INRULE==False:
-                parts.append('')
-                INRULE = True
-            else:
-                parts[-1]+='('
-        elif char==')':
-            count_open_parantheses-=1
-            if count_open_parantheses==0:
-                if parts[-1][0]==python_not:
-                    parts[-1]+=')'
-                INRULE=False
-            else:
-                parts[-1]+=')'
-        elif INRULE:
-            parts[-1] += char
-        elif char!=' ':
-            if char==python_not:
-                parts.append(python_not+' ')
-                INRULE = True
-            else:
-                symbols_between_rules.append(char)
-    IS_DNF = python_or in set(symbols_between_rules) and python_and not in set(symbols_between_rules)
-    IS_CNF = python_and in set(symbols_between_rules) and python_or not in set(symbols_between_rules)
-    assert IS_DNF==True or IS_CNF==True
-    var = list(set(mod_rule.split(' '))-set([python_or,python_and,python_not,')','(','']))
-    dict_var = dict(zip(var,range(len(var))))
-    
-    #check for each part of the rule if a variable canalizes it
-    potential_canalizing_inputs = []
-    potential_canalizing_vars = []
-    potential_canalizing_outputs = []
-    count_vars = [0]*len(var)
-    keep_part=np.ones(len(parts),dtype=bool)
-    for i,part in enumerate(parts):
-        var_in_part = list(set(part.split(' '))-set([python_or,python_and,python_not,')','(','','false','true']))
-        if len(var_in_part)==0:
-            keep_part[i] = False
-            
-        for v in var_in_part:
-            count_vars[dict_var[v]] += 1
-            for el in [' false ',' true ']:
-                simplified_expression = sympy.simplify(part.replace(' '+v+' ',el))
-                if simplified_expression in [False,True]:
-                    print(v,el,simplified_expression)
-                    potential_canalizing_inputs.append(1 if 'true' else 0)
-                    potential_canalizing_vars.append(v)
-                    potential_canalizing_outputs.append(1 if simplified_expression==True else 0)
-    parts = np.array(parts)[keep_part]
-    
-    count_potential_canalizing_inputs = pd.value_counts(potential_canalizing_vars)
-    canalizing_variables = []
-    canalizing_inputs = []
-    canalizing_outputs = []
-    subrule = mod_rule
-    if IS_DNF:
-        #if one variable makes at least one part True, this variable is canalizing
-        for i in range(len(potential_canalizing_outputs)):
-            if potential_canalizing_outputs[i]==True:
-                if potential_canalizing_vars[i] not in canalizing_variables:
-                    canalizing_variables.append(potential_canalizing_vars[i])
-                    canalizing_inputs.append(potential_canalizing_inputs[i])
-                    canalizing_outputs.append(potential_canalizing_outputs[i])
-                    subrule = subrule.replace(' '+canalizing_variables[-1]+' ',' false ' if canalizing_inputs[-1]==1 else ' true ')
-        #otherwise, if one variable occurs in every part and makes it False using the same input every time, this variable is canalizing
-        for i in range(len(count_potential_canalizing_inputs)):
-            if count_potential_canalizing_inputs[i]<len(parts):
-                break
-            elif count_potential_canalizing_inputs.index[i] in canalizing_variables: #already found this variable to be canalizing
-                continue
-            inputs = set(np.array(potential_canalizing_inputs)[np.array(potential_canalizing_vars)==count_potential_canalizing_inputs.index[i]])
-            if len(inputs)==1:
-                canalizing_variables.append(count_potential_canalizing_inputs.index[i])
-                canalizing_inputs.append(int(list(inputs)[0]))
-                canalizing_outputs.append(0)
-                subrule = subrule.replace(' '+canalizing_variables[-1]+' ',' false ' if canalizing_inputs[-1]==1 else ' true ')
-    #print(canalizing_variables)
-    rule=subrule
-    if canalizing_variables == []:
-        return rule, can_variables, can_inputs, can_outputs
-    else:
-        return get_all_canalizing_variables_of_boolean_function(rule,can_inputs=np.append(can_inputs,canalizing_inputs),can_outputs=np.append(can_outputs,canalizing_outputs),can_variables=np.append(can_variables,canalizing_variables))
-    
 ## 2) Put everything together to obtain canalizing depth, layer structure, canalized outputs, canalizing inputs as well as core function (could also calculate canalizing variables in future versions but I don't see a need)
 
 if LOADED_CANA:
-    def get_input_redundancy(F,n=None):
-        if n==None:
-            n = int(np.log2(len(F)))
-        x = cana.boolean_node.BooleanNode(k=n,outputs=F)
-        return x.input_redundancy()
+    def get_input_redundancy(f,n=-1):
+        '''
+        This function computes the input redundancy of a Boolean function, defined as in [1].
+        Constant functions have an input redundancy of 1
+        because none of the inputs are needed to know the output of the function.
+        Parity functions (e.g., f= (x1 + x2 + ... + xn) % 2 == 0) have an input redundancy of 0
+        because all inputs are always needed to know the output of the function.
 
-    def get_edge_effectiveness(F,n=None):
-        if n==None:
-            n = int(np.log2(len(F)))
-        x = cana.boolean_node.BooleanNode(k=n,outputs=F)
-        return x.edge_effectiveness()
+        input:
+            f: a Boolean function as a vector, i.e., the right-hand side of a truth table (a list of length 2^n where n is the number of inputs)
+        
+        output: a float in [0,1] describing the normalized input redundancy of f
 
-def get_canalizing_depth_inputs_outputs_corefunction(F):
-    n = int(np.log2(len(F)))
-    (NESTED_CANALIZING,can_inputs,can_outputs,corefunction) = is_k_canalizing_return_inputs_outputs_corefunction(F,n,n)
+        references:
+            [1] Marques-Pita, M., & Rocha, L. M. (2013). Canalization and control in automata networks: body segmentation in Drosophila melanogaster. PloS one, 8(3), e55946.
+            
+            [2] Correia, R. B., Gates, A. J., Wang, X., & Rocha, L. M. (2018). CANA: a python package for quantifying control and canalization in Boolean networks. Frontiers in physiology, 9, 1046.
+        '''
+        if n==-1:
+            n = int(np.log2(len(f)))
+        return cana.boolean_node.BooleanNode(k=n,outputs=f).input_redundancy()
+
+    def get_edge_effectiveness(f,n=-1):
+        '''
+        This function computes the edge effectiveness for each regulator of a Boolean function, defined as in [1].
+        Non-essential inputs have an effectiveness of 0.
+        Inputs, which when flipped always flip the output of a function, have an effectiveness of 1.
+
+        input:
+            f: a Boolean function as a vector, i.e., the right-hand side of a truth table (a list of length 2^n where n is the number of inputs)
+
+        output: a list of N floats in [0,1] describing the edge effectiveness of each regulator of f
+
+        references:
+            [1] Marques-Pita, M., & Rocha, L. M. (2013). Canalization and control in automata networks: body segmentation in Drosophila melanogaster. PloS one, 8(3), e55946.
+            
+            [2] Correia, R. B., Gates, A. J., Wang, X., & Rocha, L. M. (2018). CANA: a python package for quantifying control and canalization in Boolean networks. Frontiers in physiology, 9, 1046.
+        '''
+        if n==-1:
+            n = int(np.log2(len(f)))
+        return cana.boolean_node.BooleanNode(k=n,outputs=f).edge_effectiveness()
+
+def get_canalizing_depth_inputs_outputs_corefunction(f):
+    '''obsolete, included for backward compatability, use find_layers(f)'''
+    n = int(np.log2(len(f)))
+    (NESTED_CANALIZING,can_inputs,can_outputs,corefunction) = is_k_canalizing_return_inputs_outputs_corefunction(f,n,n)
     return (n,len(can_inputs),can_inputs,can_outputs,corefunction)
    
-def get_canalizing_depth_inputs_outputs_corefunction_order(F,variables = []):
-    n = int(np.log2(len(F)))
-    (NESTED_CANALIZING,can_inputs,can_outputs,corefunction,can_order) = is_k_canalizing_return_inputs_outputs_corefunction_order(F,n,n,variables=variables)
+def get_canalizing_depth_inputs_outputs_corefunction_order(f,variables = []):
+    '''obsolete, included for backward compatability, use find_layers(f)'''
+    n = int(np.log2(len(f)))
+    (NESTED_CANALIZING,can_inputs,can_outputs,corefunction,can_order) = is_k_canalizing_return_inputs_outputs_corefunction_order(f,n,n,variables=variables)
     return (n,len(can_inputs),can_inputs,can_outputs,corefunction,can_order)    
 
-def get_layer_structure_given_outputs_corefunction(can_outputs_F,corefunction_F,n_F):
-    k = len(can_outputs_F)
-    if k == 0:
+
+def get_layerstructure_given_canalizing_outputs_and_corefunction(can_outputs,core_polynomial,n=-1):
+    '''
+    This function computes the canalizing layer structure of a Boolean function 
+    given its canalized output values and core function or core polynomial, as defined in [1].
+    Two consecutive canalizing variables are in the same (different) layer if 
+    they possess the same (different) canalized output value.
+    
+    Input:
+        can_outputs: list of all k canalized output values of a Boolean function f in n variables
+
+        core_polynomial: Boolean core polynomial in all n-k non-conditionally canalizing variables 
+        
+        n (optional): number of variables of f
+        
+    Outputs:        
+        layerstructure: [k_1,..., k_r] a list of integers describing the number of variables in each canalizing layer of f,
+        k_i >= 1, and k_r >= 2 if sum(k_i)==n (i.e, if f is an NCF) unless r = n = 1. 
+        
+    references:
+        [1] Kadelka, C., Kuipers, J., & Laubenbacher, R. (2017). The influence of canalization on the robustness of Boolean networks. Physica D: Nonlinear Phenomena, 353, 39-47.
+
+        [2] Dimitrova, E., Stigler, B., Kadelka, C., & Murrugarra, D. (2022). Revealing the canalizing structure of Boolean functions: Algorithms and applications. Automatica, 146, 110630.
+    '''     
+    depth = len(can_outputs)
+    if depth == 0:
         return []
-    if k == n_F and n_F>1: #The last layer of Boolean NCFs has size >=2
-        can_outputs_F[-1] = can_outputs_F[-2]
-    elif is_constant(corefunction_F) and k>1: #Exceptional case, again last layer here needs to be size >=2
-        can_outputs_F[-1] = can_outputs_F[-2]
-    kis = []
-    ki = 1
-    for i in range(1,k):
-        if can_outputs_F[i]==can_outputs_F[i-1]:
-            ki+=1
+    if n==-1:
+        n = int(np.log2(len(core_polynomial))) + depth
+    assert depth!=n-1,"len(can_outputs) == n-1, this is impossible because the last variable is also canalizing in this case."
+    if depth == n and n>1: #The last layer of Boolean NCFs has size >=2
+        can_outputs[-1] = can_outputs[-2]
+    elif is_constant(core_polynomial) and depth>1: #Exceptional case, again last layer here needs to be size >=2
+        can_outputs[-1] = can_outputs[-2]
+    layerstructure = []
+    size_of_layer = 1
+    for i in range(1,depth):
+        if can_outputs[i]==can_outputs[i-1]:
+            size_of_layer+=1
         else:
-            kis.append(ki)
-            ki=1
-    kis.append(ki)
-    return kis
+            layerstructure.append(size_of_layer)
+            size_of_layer=1
+    layerstructure.append(size_of_layer)
+    return layerstructure
     
-def kindoflayer(k,w):
-    '''For NCFs (n-canalizing functions) there is a bijection between the Hamming weight (assuming w is equivalent to 2^n-w) and the layer structure 
+def get_layerstructure_of_an_NCF_given_its_Hamming_weight(n,w):
+    '''
+    This function computes the canalizing layer structure of an NCF 
+    with a given number of variables and a given Hamming weight. 
+    There is a bijection between the Hamming weight 
+    (assuming w is equivalent to 2^n-w) and the canalizing layer structure of an NCF.
     
-    Input: k - number of nodes that influence the output,
-       w - odd Hamming weight of specific NCF
-    Output: r - number of layers of this rule
-       kis - vector of kis, [k1, ..., kr]'''
-         
+    Input:
+        n: number of variables of the NCF,
+        
+        w: odd Hamming weight of the NCF, i.e., the number of 1s in the NCF in 2^n-vector form
+    Outputs:
+        r: number of layers of the NCF
+        
+        layerstructure_NCF: [k_1,..., k_r] a list of integers describing the number of variables in each layer of the NCF,
+        k_i >= 1, and k_r >= 2 unless r = n = 1. 
+        
+    references:
+        Kadelka, C., Kuipers, J., & Laubenbacher, R. (2017). The influence of canalization on the robustness of Boolean networks. Physica D: Nonlinear Phenomena, 353, 39-47.
+    '''         
     if w==1:
         r=1
-        kis=[k]
+        layerstructure_NCF=[n]
     else:
-        assert type(w) == int or type(w) == np.int64
-        assert 1<=w<=2**k-1
-        assert w%2==1
-        w_bin=dec2bin(w,k)
+        assert type(w) == int or type(w) == np.int64, 'Hamming weight must be an integer'
+        assert 1<=w<=2**n-1, 'Hamming weight w must satisfy, 1 <= w <= 2^n-1'
+        assert w%2==1, 'Hamming weight must be an odd integer since all NCFs have an odd Hamming weight.'
+        w_bin=dec2bin(w,n)
         current_el=w_bin[0]
-        kis=[1]
+        layerstructure_NCF=[1]
         for el in w_bin[1:-1]:
             if el==current_el:
-                kis[-1]+=1
+                layerstructure_NCF[-1]+=1
             else:
-                kis.append(1)
+                layerstructure_NCF.append(1)
                 current_el=el
-        kis[-1]+=1
-        r=len(kis)
-    return (r,kis)
+        layerstructure_NCF[-1]+=1
+        r=len(layerstructure_NCF)
+    return (r,layerstructure_NCF)
 
 
 ## 3) Methods to randomly generate Boolean functions (uniform distribution) and Boolean networks
+#Shunting-yard algorithm to evaluate expression
+operators = {
+    "or": 1,
+    "and": 2,
+    "not": 3,
+    "(": 18,
+    ")": 18
+}
+
+def eval_expr(expr, x):
+    op_stack = []
+    val_stack = []
+    prevToken = ""
+    for token in expr.split(' '):
+        if token == '':
+            continue
+
+        if token.isdigit():
+            val_stack.append(int(token))
+        elif not token in operators:
+            val = x[int(token[2:-1])]
+            val_stack.append(val)
+        elif token == '(':
+            op_stack.append(token)
+        elif token == ')':
+            while op_stack[-1] != '(':
+                apply_first_op(op_stack, val_stack)
+
+            op_stack.pop()
+        else:
+            while len(op_stack) > 0 and op_stack[-1] != "(" and get_precedence(op_stack[-1]) >= get_precedence(token):
+                apply_first_op(op_stack, val_stack)
+            op_stack.append(token)
+        
+        prevToken = token
+
+    while len(op_stack) > 0:
+        apply_first_op(op_stack, val_stack)
+
+    return val_stack[0]
+
+#Helper functions to eval_expr()
+def apply_first_op(op_stack, val_stack):
+    assert len(op_stack) > 0
+    operator = op_stack.pop()
+    if operator == "not":
+        val_stack.append(int(not val_stack.pop()))
+        return
+
+    val1 = val_stack.pop()
+    val2 = val_stack.pop()
+    outval = 0
+    outval = apply_operator(operator, val1, val2)
+    val_stack.append(outval)
+
+def get_precedence(operator):
+    return operators[operator]
+def apply_operator(operator, val1, val2):
+    if operator == "not":
+        return int(not val1)
+    elif operator == "and":
+        return int(val1 and val2)
+    elif operator == "or":
+        return int(val1 or val2)
+    else:
+        print("err, unrecognized operator: ", operator)
+
 def f_from_expression(expr):
+    '''
+    This function extracts a Boolean function from a string. 
+    
+    Input: a text string containing an evaluable expression
+        
+    Outputs:
+        f: the right-hand side of a Boolean function (an array of length 2**n where n is the number of inputs)
+    
+        var: a list of length n, describing the names and order of variables of f.
+        The order is determined by the first occurence of each variable in the input string.
+    
+    Examples:
+        #an and-not function
+        print(f_from_expression('A AND NOT B'))
+        >> ([0, 0, 1, 0], ['A', 'B'])
+        
+        #a threshold function
+        print(f_from_expression('x1 + x2 + x3 > 1'))
+        >> ([0, 0, 0, 1, 0, 1, 1, 1], ['x1', 'x2', 'x3'])
+        
+        #a parity function
+        print(f_from_expression('(x1 + x2 + x3) % 2 == 0'))
+        >> ([1, 0, 0, 1, 0, 1, 1, 0], ['x1', 'x2', 'x3'])
+    '''    
     expr = expr.replace('(',' ( ').replace(')',' ) ')
     expr_split = expr.split(' ')
     var = []
@@ -734,45 +953,154 @@ def f_from_expression(expr):
                 var.append(el)
                 n_var += 1
             expr_split[i] = new_var
+        elif el in ['AND','OR','NOT']:
+            expr_split[i] = el.lower()
     expr = ' '.join(expr_split)
-    F = []
+    f = []
     for x in itertools.product([0, 1], repeat = n_var):
-        F.append(int(eval(expr))) #x is used here "implicitly"
-    return F,var
+        x = list(map(bool,x))
+        f.append(int(eval(expr))) #x is used here "implicitly"
+    return f,var
 
-def random_function(n):
-    return np.random.randint(2, size = 2**n)    
+def random_function(n,probability_one=0.5):
+    '''
+    This function generates a random Boolean function in n variables,
+    which are not guaranteed to be essential. 
+    
+    Inputs:
+        n: the number of variables
+        
+        probability_one (default = 0.5): the bias of the Boolean function,
+        i.e., the probability of having a 1 (vs a 0) in the Boolean function.
+                
+    Output: f: a Boolean function as a vector, i.e., the right-hand side of a truth table (a list of length 2^n where n is the number of inputs)
+    '''   
+    return np.array(np.random.random(2**n)<probability_one,dtype=int)
+    
 
 def random_linear_function(n):
+    '''
+    This function generates a random linear Boolean function in n variables.
+    
+    Input: the number of variables
+        
+    Output: f: a Boolean function as a vector, i.e., the right-hand side of a truth table (a list of length 2^n where n is the number of inputs)
+    '''   
     return f_from_expression('(%s) %% 2 == 1' % (' + '.join(['x%i' % i if random.random()>0.5 else '(1 + x%i)' % i for i in range(n)])))[0]
 
-def random_non_degenerated_function(n):
+def random_non_degenerated_function(n,probability_one=0.5):
+    '''
+    This function generates a random non-degenerated Boolean function in n variables.
+    That is, it generates a Boolean function which possesses only essential variables.
+    
+    Inputs:
+        n: the number of variables
+        
+        probability_one (default = 0.5): the bias of the Boolean function,
+        i.e., the probability of having a 1 (vs a 0) in the Boolean function.
+        
+    Output: f: a Boolean function as a vector, i.e., the right-hand side of a truth table (a list of length 2^n where n is the number of inputs)
+        
+    references:
+        Kadelka, C., Kuipers, J., & Laubenbacher, R. (2017). The influence of canalization on the robustness of Boolean networks. Physica D: Nonlinear Phenomena, 353, 39-47.
+    '''  
     while True: #works because most functions are non-degenerated
-        F = np.random.randint(2, size = 2**n) 
-        if not is_degenerated(F):
-            return F
+        f = np.array(np.random.random(2**n)<probability_one,dtype=int)#np.random.randint(2, size = 2**n) 
+        if not is_degenerated(f):
+            return f
 
-def random_degenerated_function(n):
-    while True: #works because most functions are non-degenerated
-        F = np.random.randint(2, size = 2**n) 
-        if is_degenerated(F):
-            return F
+def random_degenerated_function(n,probability_one=0.5):
+    '''
+    This function generates a random degenerated Boolean function in n variables.
+    That is, it generates a Boolean function which possesses at least one non-essential variable.
+    
+    Inputs:
+        n: the number of variables
+        
+        probability_one (default = 0.5): the bias of the Boolean function,
+        i.e., the probability of having a 1 (vs a 0) in the Boolean function.
+        
+    Output: f: a Boolean function as a vector, i.e., the right-hand side of a truth table (a list of length 2^n where n is the number of inputs)
 
-def random_non_canalizing_function(n):
+    references:
+        Kadelka, C., Kuipers, J., & Laubenbacher, R. (2017). The influence of canalization on the robustness of Boolean networks. Physica D: Nonlinear Phenomena, 353, 39-47.
+    '''  
+    while True: #works not well because most functions are non-degenerated
+        f = np.array(np.random.random(2**n)<probability_one,dtype=int)#np.random.randint(2, size = 2**n) 
+        if is_degenerated(f):
+            return f
+
+def random_non_canalizing_function(n,probability_one=0.5):
+    '''
+    This function generates a random non-canalizing Boolean function in n>1 variables.
+    A Boolean function f(x_1,...,x_n) is canalizing if it is canalizing in at least one variable.
+    A Boolean function f(x_1,...,x_n) is canalizing in x_i if f(x_1,...,x_i=a,...,x_n) = b for some a,b in [0,1] and for all x_1,...,x_{i-1},x_{i+1},...,x_n in [0,1].
+
+    
+    Inputs:
+        n: the number of variables
+        
+        probability_one (default = 0.5): the bias of the Boolean function,
+        i.e., the probability of having a 1 (vs a 0) in the Boolean function.
+        
+    Output: f: a Boolean function as a vector, i.e., the right-hand side of a truth table (a list of length 2^n where n is the number of inputs)
+    
+    references:
+        Kadelka, C., Kuipers, J., & Laubenbacher, R. (2017). The influence of canalization on the robustness of Boolean networks. Physica D: Nonlinear Phenomena, 353, 39-47.
+    '''  
     assert n>1
     while True: #works because most functions are non-canalizing
-        F = np.random.randint(2, size = 2**n) 
-        if not is_canalizing(F,n):
-            return F
+        f = np.array(np.random.random(2**n)<probability_one,dtype=int)#np.random.randint(2, size = 2**n) 
+        if not is_canalizing(f,n):
+            return f
 
-def random_non_canalizing_non_degenerated_function(n):
+def random_non_canalizing_non_degenerated_function(n,probability_one=0.5):
+    '''
+    This function generates a random non-canalizing non-degenerated Boolean function in n>1 variables.
+    A Boolean function f(x_1,...,x_n) is canalizing if it is canalizing in at least one variable.
+    A Boolean function f(x_1,...,x_n) is canalizing in x_i if f(x_1,...,x_i=a,...,x_n) = b for some a,b in [0,1] and for all x_1,...,x_{i-1},x_{i+1},...,x_n in [0,1].
+    A Boolean function is degenerated if at least one of its variables never impacts the output (i.e, is non-essential).
+    
+    Inputs:
+        n: the number of variables (n>1 required)
+        
+        probability_one (default = 0.5): the bias of the Boolean function,
+        i.e., the probability of having a 1 (vs a 0) in the Boolean function.
+        
+    Output: f: a Boolean function as a vector, i.e., the right-hand side of a truth table (a list of length 2^n where n is the number of inputs)
+    
+    references:
+        Kadelka, C., Kuipers, J., & Laubenbacher, R. (2017). The influence of canalization on the robustness of Boolean networks. Physica D: Nonlinear Phenomena, 353, 39-47.
+    ''' 
     assert n>1
     while True: #works because most functions are non-canalizing and non-degenerated
-        F = np.random.randint(2, size = 2**n) 
-        if not is_canalizing(F,n) and not is_degenerated(F):
-            return F
+        f = np.array(np.random.random(2**n)<probability_one,dtype=int)#np.random.randint(2, size = 2**n) 
+        if not is_canalizing(f,n) and not is_degenerated(f):
+            return f
 
-def random_k_canalizing(n, k, EXACT_DEPTH_K=False, x=[]):
+def random_k_canalizing(n, k, EXACT_DEPTH_K=False, left_side_of_truth_table=[]):
+    '''
+    This function generates a random k-canalizing Boolean function in n variables.
+    A Boolean function f is k-canalizing if it has at least k conditionally canalizing variables.
+
+    Inputs:
+        n: the number of variables of f
+        
+        k: the number of conditionally canalizing variables of f
+        
+        EXACT_DEPTH_K (optional):
+            If TRUE, the generated function f has exactly k conditionally canalizing variables, i.e. canalizing depth = k.
+            If FALSE (default), the generated function f has canalizing depth >= k.
+        
+        left_side_of_truth_table (optional for speed-up): the left-hand side of the Boolean truth table of size 2^n x n
+        
+    Output: f: a Boolean function as a vector, i.e., the right-hand side of a truth table (a list of length 2^n where n is the number of inputs)
+    
+    references:
+        [1] He, Q., & Macauley, M. (2016). Stratification and enumeration of Boolean functions by canalizing depth. Physica D: Nonlinear Phenomena, 314, 1-8.
+
+        [2] Dimitrova, E., Stigler, B., Kadelka, C., & Murrugarra, D. (2022). Revealing the canalizing structure of Boolean functions: Algorithms and applications. Automatica, 146, 110630.
+    ''' 
     try:
         assert (n-k!=1 or EXACT_DEPTH_K==False)
     except AssertionError:
@@ -783,13 +1111,13 @@ def random_k_canalizing(n, k, EXACT_DEPTH_K=False, x=[]):
     except AssertionError:
         print('Error:\nEnsure 0 <= k <= n.')
         return
-    if x==[]: #to reduce run time, this should be calculated once and then passed as argument
-        x = list(itertools.product([0, 1], repeat = n))
+    if left_side_of_truth_table==[]: #to reduce run time, this should be calculated once and then passed as argument
+        left_side_of_truth_table = list(itertools.product([0, 1], repeat = n))
     num_values = 2**n
     aas = np.random.randint(2, size = k)  # inputs
     bbs = np.random.randint(2, size = k)  # outputs
     can_vars = np.random.choice(n, k, replace = False)
-    F = np.zeros(num_values, dtype = int)
+    f = np.zeros(num_values, dtype = int)
     
     if k<n:
         if EXACT_DEPTH_K:
@@ -803,22 +1131,45 @@ def random_k_canalizing(n, k, EXACT_DEPTH_K=False, x=[]):
     
     for i in range(num_values):
         for j in range(k):
-            if x[i][can_vars[j]] == aas[j]:
-                F[i] = bbs[j]
+            if left_side_of_truth_table[i][can_vars[j]] == aas[j]:
+                f[i] = bbs[j]
                 break
         else:
-            F[i] = core_polynomial[counter_non_canalized_positions]
+            f[i] = core_polynomial[counter_non_canalized_positions]
             counter_non_canalized_positions += 1
-    return F
+    return f
 
-def random_k_canalizing_with_specific_weight(n, kis, EXACT_DEPTH_K=False, x=[]):
-    k=sum(kis)
+def random_k_canalizing_with_specific_layerstructure(n, layerstructure, EXACT_DEPTH_K=False, left_side_of_truth_table=[]):
+    '''
+    This function generates a random Boolean function in n variables 
+    with a specified layer structure for the k (0<k<=n) canalizing variables.
+    
+    Inputs:
+        n: the number of variables of f
+        
+        layerstructure: [k_1,..., k_r] a list of integers describing the number of variables in each canalizing layer of f,
+        k_i >= 1, and k_r >= 2 if sum(k_i)==n  (i.e, if f is an NCF) unless r = n = 1. 
+        
+        EXACT_DEPTH_K (optional):
+            If TRUE, the generated function f has exactly k conditionally canalizing variables, i.e. canalizing depth = k.
+            If FALSE (default), the generated function f has canalizing depth >= k.
+        
+        left_side_of_truth_table (optional for speed-up): the left-hand side of the Boolean truth table of size 2^n x n
+        
+    Output: f: a Boolean function as a vector, i.e., the right-hand side of a truth table (a list of length 2^n where n is the number of inputs)
+    
+    references:
+        [1] He, Q., & Macauley, M. (2016). Stratification and enumeration of Boolean functions by canalizing depth. Physica D: Nonlinear Phenomena, 314, 1-8.
+
+        [2] Kadelka, C., Kuipers, J., & Laubenbacher, R. (2017). The influence of canalization on the robustness of Boolean networks. Physica D: Nonlinear Phenomena, 353, 39-47.
+    ''' 
+    k=sum(layerstructure) #canalizing depth
     if k==0:
-        kis = [0]
+        layerstructure = [0]
     try:
         assert (n-k!=1 or EXACT_DEPTH_K==False)
     except AssertionError:
-        print('Error:\nThere are no functions of exact canalizing depth n-1.\nEither set EXACT_DEPTH_K=False or ensure k=sum(kis)!=n.')
+        print('Error:\nThere are no functions of exact canalizing depth n-1.\nEither set EXACT_DEPTH_K=False or ensure k=sum(layerstructure)!=n.')
         return
     try:
         assert 0<=k and k<=n
@@ -826,28 +1177,28 @@ def random_k_canalizing_with_specific_weight(n, kis, EXACT_DEPTH_K=False, x=[]):
         print('Error:\nEnsure 0 <= k=sum(kis) <= n.')
         return
     try:
-        assert k<n or kis[-1]>1 or n==1
+        assert k<n or layerstructure[-1]>1 or n==1
     except AssertionError:
-        print('Error:\nThe last layer of an n-canalizing function (NCF) has to have size >=2 for n>1.\nIf k=sum(kis)=n, ensure that kis[-1]>=2.')
+        print('Error:\nThe last layer of an n-canalizing function (NCF) has to have size >=2 for n>1.\nIf k=sum(layerstructure)=n, ensure that layerstructure[-1]>=2.')
         return
     try:
-        assert min(kis)>=1
+        assert min(layerstructure)>=1
     except AssertionError:
         print('Error:\nThere needs to be at least one variable in each layer, i.e., each element of kis must be >=1.')
         return
-    if x==[]: #to increase run time, this should be calculated once and then passed as argument
-        x = list(itertools.product([0, 1], repeat = n))
+    if left_side_of_truth_table==[]: #to decrease run time, this should be calculated once and then passed as argument
+        left_side_of_truth_table = list(itertools.product([0, 1], repeat = n))
     num_values = 2**n
     aas = np.random.randint(2, size = k)  # inputs
     b0 = np.random.randint(2)
-    bbs = [b0]*kis[0]  # outputs
-    for i in range(1,len(kis)):
+    bbs = [b0]*layerstructure[0]  # outputs
+    for i in range(1,len(layerstructure)):
         if i%2==0:
-            bbs.extend([b0]*kis[i])
+            bbs.extend([b0]*layerstructure[i])
         else:
-            bbs.extend([1-b0]*kis[i])
+            bbs.extend([1-b0]*layerstructure[i])
     can_vars = np.random.choice(n, k, replace = False)
-    F = np.zeros(num_values, dtype = int)
+    f = np.zeros(num_values, dtype = int)
     
     if k<n:
         if EXACT_DEPTH_K:
@@ -861,13 +1212,13 @@ def random_k_canalizing_with_specific_weight(n, kis, EXACT_DEPTH_K=False, x=[]):
     
     for i in range(num_values):
         for j in range(k):
-            if x[i][can_vars[j]] == aas[j]:
-                F[i] = bbs[j]
+            if left_side_of_truth_table[i][can_vars[j]] == aas[j]:
+                f[i] = bbs[j]
                 break
         else:
-            F[i] = core_polynomial[counter_non_canalized_positions]
+            f[i] = core_polynomial[counter_non_canalized_positions]
             counter_non_canalized_positions += 1
-    return F
+    return f
 
 def random_adj_matrix(N,ns,NO_SELF_REGULATION=True,STRONGLY_CONNECTED=False): #recursive function definition
     matrix = np.zeros((N, N), dtype = int)
@@ -929,7 +1280,56 @@ def random_edge_list(N,ns,NO_SELF_REGULATION,AT_LEAST_ONE_REGULATOR_PER_GENE=Fal
             edge_list[index_edge] = (index_sink,edge_list[index_edge][1])
     return edge_list
 
-def random_BN(N, n = 2, k = 0, STRONGLY_CONNECTED = True, indegree_distribution = 'constant', list_x=[], kis = None, EXACT_DEPTH=False,NO_SELF_REGULATION=True,LINEAR=False,edges_wiring_diagram = None):    
+def get_essential_network(F,I):
+    '''
+    This function determines the number of essential variables of a Boolean function.
+    
+    inputs:    
+        F: a list of N lists of length 2^(n_i) 
+        where N is the number of genes and n_i is the number of regulators per gene.
+        
+        I: a list of N lists of length n_i where N is the number of genes, n_i is the number of regulators per gene. 
+        I describes the regulators of each gene (as indices 0, 1, ..., n-1), 
+        i.e., the wiring diagram of the Boolean network F (the adjacency matrix of a directed graph)
+            
+    output:
+        F_essential,: a list of N lists of length 2^(m_i), 
+        where N is the number of genes and m_i<=n_i is the number of ESSENTIAL regulators per gene.
+        
+        I_essential: a list of N lists of length m_i 
+        where N is the number of genes, m_i<=n_i is the number of ESSENTIAL regulators per gene. 
+        I_essential describes the ESSENTIAL regulators of each gene (as indices 0, 1, ..., n-1), 
+        i.e., the ESSENTIAL wiring diagram of the Boolean network F (the adjacency matrix of a directed graph)
+    '''        
+    import itertools
+    F_essential = []
+    I_essential = []
+    for f,regulators in zip(F,I):
+        if len(f)==0: #happens if the actual degree of f was too large for it to be loaded
+            F_essential.append(f)
+            I_essential.append(regulators)
+            continue
+        elif sum(f)==0:
+            F_essential.append(np.array([0]))
+            I_essential.append(np.array([],dtype=int))
+            continue
+        elif sum(f)==len(f):
+            F_essential.append(np.array([1]))
+            I_essential.append(np.array([],dtype=int))
+            continue
+        essential_variables = np.array(get_essential_variables(f))
+        n = len(regulators)
+        non_essential_variables = np.array(list(set(list(range(n))) - set(essential_variables)))
+        if len(non_essential_variables)==0:
+            F_essential.append(f)
+            I_essential.append(regulators)
+        else:
+            left_side_of_truth_table = np.array(list(itertools.product([0, 1], repeat=n)))
+            F_essential.append((np.array(f)[np.sum(left_side_of_truth_table[:,non_essential_variables],1) == 0]))
+            I_essential.append((np.array(regulators)[essential_variables]))
+    return F_essential,I_essential
+
+def random_BN(N, n = 2, k = 0, STRONGLY_CONNECTED = True, indegree_distribution = 'constant', list_x=[], kis = None, EXACT_DEPTH=False,NO_SELF_REGULATION=True,LINEAR=False,edges_wiring_diagram = None, bias = 0.5):    
     #need to also accept vectors for k and kis
     if indegree_distribution in ['constant','dirac','delta']:
         if type(n) in [list,np.array]:
@@ -1095,14 +1495,14 @@ def random_BN(N, n = 2, k = 0, STRONGLY_CONNECTED = True, indegree_distribution 
                 F.append(random_k_canalizing(ns[i], min(k[i],ns[i]), EXACT_DEPTH_K = EXACT_DEPTH, x=list_x[ns[i]-1]))
         elif kis!=None: #value of k is ignored if a layer structure is provided
             if np.all([type(el) in [int,np.int64] for el in kis]):
-                F.append(random_k_canalizing_with_specific_weight(ns[i], kis, EXACT_DEPTH_K = EXACT_DEPTH, x=list_x[ns[i]-1]))                
+                F.append(random_k_canalizing_with_specific_layerstructure(ns[i], kis, EXACT_DEPTH_K = EXACT_DEPTH, x=list_x[ns[i]-1]))                
             else:
-                F.append(random_k_canalizing_with_specific_weight(ns[i], kis[i], EXACT_DEPTH_K = EXACT_DEPTH, x=list_x[ns[i]-1]))                                
+                F.append(random_k_canalizing_with_specific_layerstructure(ns[i], kis[i], EXACT_DEPTH_K = EXACT_DEPTH, x=list_x[ns[i]-1]))                                
         else:
             if EXACT_DEPTH==True: #i.e. if k==0
-                F.append(random_non_canalizing_non_degenerated_function(ns[i]))                   
+                F.append(random_non_canalizing_non_degenerated_function(ns[i],bias))                   
             else:
-                F.append(random_non_degenerated_function(ns[i]))   
+                F.append(random_non_degenerated_function(ns[i],bias))
     
     I = [[] for _ in range(N)]
     for edge in edges_wiring_diagram:
@@ -1112,16 +1512,16 @@ def random_BN(N, n = 2, k = 0, STRONGLY_CONNECTED = True, indegree_distribution 
     
     return F, I, ns
 
-def get_perturbed_network(F,I,ns,control_target,control_source,type_of_control = 0,bool_list = []):
+def get_perturbed_network(F,I,ns,control_target,control_source,type_of_control = 0,left_side_of_truth_table = []):
     F_new = [f for f in F]
     I_new = [i for i in I]
     
-    if bool_list==[]:
-        bool_list = np.array(list(itertools.product([0,1],repeat=ns[control_target])))
+    if left_side_of_truth_table==[]:
+        left_side_of_truth_table = np.array(list(itertools.product([0,1],repeat=ns[control_target])))
     
     try:
         index = list(I[control_target]).index(control_source)
-        F_new[control_target] = F_new[control_target][bool_list[:,index]==type_of_control]
+        F_new[control_target] = F_new[control_target][left_side_of_truth_table[:,index]==type_of_control]
         dummy = list(I_new[control_target])
         dummy.remove(control_source)
         I_new[control_target] = np.array(dummy)
@@ -1175,26 +1575,26 @@ def nr_non_canalizing_by_weight_simulation(n,nsim=10000):
 
 def stratify_Boolean_fcts_by_canalization_ns(n,nsim=10000):
     nr_values = 2**n  
-    depths,kiss = [],[]
+    depths,layerstructures = [],[]
     for i in range(nsim):
-        F = np.random.random(nr_values)>0.5
-        (n_F,depth_F,can_inputs_F,can_outputs_F,corefunction_F) = get_canalizing_depth_inputs_outputs_corefunction(F)
-        depths.append(depth_F)
-        kis = get_layer_structure_given_outputs_corefunction(can_outputs_F,corefunction_F,n)
-        kiss.append(kis)
-    return (depths,kiss)
+        f = np.random.random(nr_values)>0.5
+        (depth_f,number_layers_f,can_inputs_f,can_outputs_f,corepolynomial_f,can_order_f) = find_layers(f)
+        depths.append(depth_f)
+        layerstructure = get_layerstructure_given_canalizing_outputs_and_corefunction(can_outputs_f,corepolynomial_f,n)
+        layerstructures.append(layerstructure)
+    return (depths,layerstructures)
 
 
 ## 5) Analysis methods
 def get_constant_nodes(I,degree,N):
     return np.array([i for i in range(N) if degree[i]==1 and I[i][0]==i])
 
-def rnd_edge_deletion(F,I,N,degree,nsim=100,bool_lists=[]):
+def rnd_edge_deletion(F,I,N,degree,nsim=100,left_sides_of_truth_tables=[]):
     res = []
     for i in range(nsim):
         rnd_var = np.random.randint(N)
         rnd_input = np.random.randint(degree[rnd_var])
-        res.append( sum(F[rnd_var][np.array(bool_lists[degree[rnd_var]-1])[:,rnd_input]==0]!=F[rnd_var][np.array(bool_lists[degree[rnd_var]-1])[:,rnd_input]==1]) )
+        res.append( sum(F[rnd_var][np.array(left_sides_of_truth_tables[degree[rnd_var]-1])[:,rnd_input]==0]!=F[rnd_var][np.array(left_sides_of_truth_tables[degree[rnd_var]-1])[:,rnd_input]==1]) )
     return res
 
 def update(F, I, N, X):
@@ -1222,8 +1622,8 @@ def average_sensitivity(F,nsim=10000,EXACT=False,NORMALIZED=True):
     num_values = 2**n
     s = 0
     if EXACT:
-        bool_list = list(map(np.array,list(itertools.product([0, 1], repeat = n))))
-        for ii,X in enumerate(bool_list):
+        left_side_of_truth_table = list(map(np.array,list(itertools.product([0, 1], repeat = n))))
+        for ii,X in enumerate(left_side_of_truth_table):
             for i in range(n):
                 Y=X.copy()
                 Y[i] = 1-X[i]
@@ -1252,20 +1652,20 @@ def absolute_bias(F,n=None):
         n = int(np.log2(len(F)))
     return abs(sum(F)*1./2**(n-1)-1)
 
-def num_of_attractors(F, I, N, nsim = 500, EXACT = False, bool_list = [], initial_sample_points = []):
+def num_of_attractors(F, I, N, nsim = 500, EXACT = False, left_side_of_truth_table = [], initial_sample_points = []):
     dictF = dict()
     attractors = []
     basin_sizes = []
     attr_dict = dict()
     
-    if EXACT and bool_list == []:
-        bool_list = list(map(np.array,list(itertools.product([0, 1], repeat = N))))
+    if EXACT and left_side_of_truth_table == []:
+        left_side_of_truth_table = list(map(np.array,list(itertools.product([0, 1], repeat = N))))
     
     sampled_points = []
     
     for i in range(nsim if not EXACT else 2**N):
         if initial_sample_points==[]:
-            x = np.random.randint(2, size = N) if not EXACT else bool_list[i]
+            x = np.random.randint(2, size = N) if not EXACT else left_side_of_truth_table[i]
             xbin = bin2dec(x)
             sampled_points.append(xbin)
         else:
@@ -1343,20 +1743,20 @@ def num_of_attractors_v2(F, I, N, nb = 500, initial_sample_points=[]): #should b
             xbin = fxbin
     return (attractors, len(attractors), basin_sizes, attr_dict, initial_sample_points if initial_sample_points!=[] else sampled_points)
 
-def num_of_attractors_exact(F, I, N,bool_list = []):
+def num_of_attractors_exact(F, I, N,left_side_of_truth_table = []):
     dictF = dict()
     attractors = []
     basin_sizes = []
     attractor_dict = dict()
     
-    if bool_list == []:
-        bool_list = list(map(np.array,list(itertools.product([0, 1], repeat = N))))
+    if left_side_of_truth_table == []:
+        left_side_of_truth_table = list(map(np.array,list(itertools.product([0, 1], repeat = N))))
     
     b_for_bin2decs = [np.array([2**i for i in range(NN)])[::-1] for NN in range(N+1)]
     
     degrees = list(map(len,I))
     
-    for xbin,x in enumerate(bool_list):
+    for xbin,x in enumerate(left_side_of_truth_table):
         queue = [xbin]
         while True: #as long as we haven't reached an attractor state, keep updating
             try:
@@ -1392,9 +1792,9 @@ def num_of_attractors_exact(F, I, N,bool_list = []):
             xbin = fxbin
     return (attractors, len(attractors), basin_sizes, attractor_dict)
 
-def num_of_attractors_exact_fast(F, I, N,bool_list = None):    
-    if bool_list is None:
-        bool_list = np.array(list(map(np.array,list(itertools.product([0, 1], repeat = N)))))
+def num_of_attractors_exact_fast(F, I, N,left_side_of_truth_table = None):    
+    if left_side_of_truth_table is None:
+        left_side_of_truth_table = np.array(list(map(np.array,list(itertools.product([0, 1], repeat = N)))))
     
     b_for_bin2dec = np.array([2**i for i in range(N)])[::-1]
     degrees = list(map(len,I))
@@ -1403,7 +1803,7 @@ def num_of_attractors_exact_fast(F, I, N,bool_list = None):
     for i in range(N):
         for j,x in enumerate(itertools.product([0, 1], repeat = degrees[i])):
             if F[i][j]:
-                state_space[np.all(bool_list[:,I[i]]==np.array(x),1),i] = 1
+                state_space[np.all(left_side_of_truth_table[:,I[i]]==np.array(x),1),i] = 1
     dictF = dict(zip(list(range(2**N)),np.dot(state_space,b_for_bin2dec)))
     
     attractors = []
@@ -1452,7 +1852,7 @@ def derrida_value(F, I, N, m, nsim = 500):
         total += d(update(F, I, N, X), update(F, I, N, Y))
     return total*1./nsim
 
-def get_robustness_from_attractor_dict_exact(attractor_dict,N,n_attractors,bool_list):
+def get_robustness_from_attractor_dict_exact(attractor_dict,N,n_attractors,left_side_of_truth_table):
     '''computes the proportion of neighbors in the Boolean hypercube
     who, following synchronous update, transition to the same attractor,
     
@@ -1461,7 +1861,7 @@ def get_robustness_from_attractor_dict_exact(attractor_dict,N,n_attractors,bool_
         return 1
     b_for_bin2dec = np.array([2**i for i in range(N)])[::-1]
     count_of_neighbors_who_transition_to_same_attractor = 0
-    for xbin,x in enumerate(bool_list):
+    for xbin,x in enumerate(left_side_of_truth_table):
         for i in range(N):
             if x[i]==0:
                 ybin = xbin + b_for_bin2dec[i]
@@ -1677,6 +2077,11 @@ def generate_networkx_graph_from_edges(I,n_variables):
     return nx.DiGraph(edges)
 
 def simple_cycles(G,max_len=4):
+    '''
+    from https://networkx.org/documentation/networkx-1.9/_modules/networkx/algorithms/cycles.html#simple_cycles
+    
+    This function 
+    '''
     def _unblock(thisnode, blocked, B):
         stack = set([thisnode])
         while stack:

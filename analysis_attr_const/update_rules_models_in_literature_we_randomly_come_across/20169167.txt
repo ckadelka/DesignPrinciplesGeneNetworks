@@ -1,6 +1,0 @@
-RpoN	=	GacSGacA
-HrpRS	=	(GacSGacA) AND (NOT HrpV) OR (HrpA)
-HrpV	=	(HrpL AND RpoN) AND NOT HrpG
-HrpA	=	HrpL
-HrpG	=	HrpL
-HrpL	=	RpoN AND HrpRS

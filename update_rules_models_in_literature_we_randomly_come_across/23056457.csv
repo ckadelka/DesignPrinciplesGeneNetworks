@@ -1,0 +1,15 @@
+Bmp2 = ( NOT canWnt AND exogen_BMP2_2 )
+canWnt = exogen_canWnt_2
+Dkk1 = ( Mesp1 OR ( canWnt AND NOT exogen_BMP2_2 ) )
+Fgf8 = ( NOT Mesp1 AND ( Foxc1/2 OR Tbx1 ) )
+Foxc1/2 = ( canWnt AND exogen_canWnt_2 )
+GATAs = ( Nkx2.5 OR Mesp1 OR Tbx5 )
+Isl1 = ( Tbx1 OR Mesp1 OR Fgf8 OR ( canWnt AND exogen_canWnt_2 ) )
+Mesp1 = ( canWnt AND NOT exogen_BMP2_2 )
+Nkx2.5 = ( ( Isl1 AND GATAs ) OR Tbx1 OR ( Mesp1 AND Dkk1 ) OR ( BMP2 AND GATAs ) OR Tbx5 )
+Tbx1 = Foxc1/2
+Tbx5 = ( NOT ( Tbx1 OR canWnt ) AND ( Nkx2.5 OR Tbx5 OR Mesp1 ) AND NOT ( Dkk1 AND NOT ( Mesp1 OR Tbx5 ) ) )
+exogen_BMP2_1 = exogen_BMP2_1
+exogen_BMP2_2 = exogen_BMP2_1
+exogen_canWnt_1 = exogen_canWnt_1
+exogen_canWnt_2 = exogen_canWnt_1

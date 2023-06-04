@@ -1,0 +1,43 @@
+1 = NOT 22 AND NOT 13
+2 = NOT 1
+3 = 2 AND 4
+4 = NOT 24 AND (2 OR 18)
+5 = 21 OR NOT 3
+6 = NOT 21 AND (NOT 5 OR 3 OR 8)
+7 = NOT 23 AND (NOT 5 OR 15 OR NOT 9)
+8 = NOT 21 AND 6 AND 18
+9 = NOT 7 OR 10 OR 21
+10 = NOT 7 OR 20
+11 = 7
+12 = (4 AND NOT 9) OR (14 AND NOT 9) OR (4 AND 14)
+13 = 11 AND 12
+14 = 8 OR 4
+15 = 14
+16 = 17
+17 = (4 AND 7) OR (4 AND 15) OR (7 AND 15)
+18 = 13
+19 = 16
+1 : BF
+2 : Mild_renal_ischemia
+3 : NADPH_oxidase
+4 : ANG_II_ET_1
+5 : ROS_Scavenging
+6 : Ox_LDL
+7 : ROS_Oxidative_stress
+8 : NFkB
+9 : NO_availability
+10 : VEGF
+11 : Angiostatin_endostatin_thrombospondin
+12 : Vasoconstriction
+13 : MV_Rarefaction
+14 : Inflammation
+15 : TGF_beta
+16 : Tubule_interstital_injury_and_glomerulosclerosis
+17 : TIMP_MMPs
+18 : More_severe_renal_ischemia
+19 : Fibrosis
+20 : VEGF_administration
+21 : Simvastatin
+22 : Renal_artery_stenosis
+23 : Anti_oxidant_administration_Vitamins_C_and_E
+24 : Endothelin_A

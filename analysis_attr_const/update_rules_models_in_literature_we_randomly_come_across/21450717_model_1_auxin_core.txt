@@ -1,6 +1,0 @@
-ARF = NOT AUX/IAA
-AUX/IAA = AuxREs OR NOT SCFTir1
-AuxREs = ARF
-IAA = StimAux OR NOT PIN
-PIN = AuxREs
-SCFTir1 = IAA
