@@ -19,9 +19,21 @@ C = NOT A
 This little example represents a model with three genes, A, B and C, and one external parameter D (which only appears on the right side of the equations).
 
 # canalizing_function_toolbox_v13
-This file contains a variety of functions to analyze Boolean functions and Boolean networks. Each function has its own documentation. 
+This file contains a variety of functions to analyze Boolean functions and Boolean networks. Each Python function has its own documentation. A Boolean function is considered as a list of 0-1 entries of length 2^n where n is the number of inputs. A Boolean network of N nodes is a list of N Boolean functions. For example,
+```python
+f_A = [0,1,1,1]
+f_B = [0,0,0,1,1,1,1,1]
+f_C = [1,0]
+F = [f_A,f_B,f_C]
+```
+describes the Boolean network from above. One can also get this via
+```python
+import load_database13 as db
+F, I, degree, variables, constants = db.text_to_BN('A = B OR C\nB = A OR (C AND D)\nC = NOT A')
+```
+which yields in addition the adjacency matrix I, the in-degree of each node, the names of the variables (in order) and the names of potential external parameters.
 
 # analyse_database13.py
-This file combines everything. It loads the database and analyzes it. Most functions defined in this file are used to generate the plots in [https://arxiv.org/abs/2009.01216](https://arxiv.org/abs/2009.01216).
+This file combines everything. It loads the database and analyzes it. Most Python functions defined in this file are used to generate the plots in [https://arxiv.org/abs/2009.01216](https://arxiv.org/abs/2009.01216).
  
 
