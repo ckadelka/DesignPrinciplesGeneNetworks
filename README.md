@@ -6,8 +6,10 @@ Most functionality is also implemented in the interactive project website [https
 
 The three key pieces of code are:
 1. load_database13.py,
-2. analyse_database13.py, and
-3. canalizing_function_toolbox_v13.
+2. canalizing_function_toolbox_v13, and
+3. analyse_database13.py.
+
+Moreover, analyse_database13_modularity.py generates the analyses described in this paper: [https://www.biorxiv.org/content/10.1101/2023.09.11.557227v1](https://www.biorxiv.org/content/10.1101/2023.09.11.557227v1), and displays the acyclic graph structure of Boolean gene regulatory networks.
 
 # load_database13.py
 This file contains all code needed to load the Boolean network models via load_database(folders). The models are stored in a list of folders, as text files in a standardized format:
