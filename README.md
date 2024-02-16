@@ -1,7 +1,7 @@
 # DesignPrinciplesGeneNetworks
 A collection of functions and tools to analyze Boolean gene regulatory networks
 
-This repository contains code to perform the analyses described in this paper: [https://arxiv.org/abs/2009.01216](https://arxiv.org/abs/2009.01216). 
+This repository contains code to perform the analyses described in the paper "A meta-analysis of Boolean network models reveals design principles of gene regulatory networks", published in 2024 in [https://www.science.org/doi/full/10.1126/sciadv.adj0822](Science Advances). 
 Most functionality is also implemented in the interactive project website [https://booleangenenetworks.math.iastate.edu](https://booleangenenetworks.math.iastate.edu).
 
 The three key pieces of code are:
