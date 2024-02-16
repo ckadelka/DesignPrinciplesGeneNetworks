@@ -39,6 +39,6 @@ F, I, degree, variables, constants = db.text_to_BN(folder='',textfile='example.t
 which yields in addition the adjacency matrix I, the in-degree of each node, the names of the variables (in order) and the names of potential external parameters.
 
 # analyse_database13.py
-This file combines everything. It loads the database and analyzes it. Most Python functions defined in this file are used to generate the plots in [Science Advances](https://www.science.org/doi/full/10.1126/sciadv.adj0822).
+This file combines everything. It loads the database and analyzes it. Most Python functions defined in this file are used to generate the plots in the paper "A meta-analysis of Boolean network models reveals design principles of gene regulatory networks", published in 2024 in [Science Advances](https://www.science.org/doi/full/10.1126/sciadv.adj0822).
  
 
