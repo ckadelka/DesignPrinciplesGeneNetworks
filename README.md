@@ -39,6 +39,6 @@ F, I, degree, variables, constants = db.text_to_BN(folder='',textfile='example.t
 which yields in addition the adjacency matrix I, the in-degree of each node, the names of the variables (in order) and the names of potential external parameters.
 
 # analyse_database13.py
-This file combines everything. It loads the database and analyzes it. Most Python functions defined in this file are used to generate the plots in [https://arxiv.org/abs/2009.01216](https://arxiv.org/abs/2009.01216), which will soon be published in updated format but with the same title in a journal.
+This file combines everything. It loads the database and analyzes it. Most Python functions defined in this file are used to generate the plots in [Science Advances](https://www.science.org/doi/full/10.1126/sciadv.adj0822).
  
 
