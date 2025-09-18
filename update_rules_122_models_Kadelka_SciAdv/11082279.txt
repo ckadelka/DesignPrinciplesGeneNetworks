@@ -1,0 +1,9 @@
+Erk = Growth_factor AND NOT S_phase_genes
+Cyclin_D1 = Erk AND NOT p27
+p27 = X OR NOT Mitosis
+X = Growth_factor AND spread
+Cyclin_E = E2F OR NOT p27
+E2F = Cyclin_E AND NOT pRb
+pRb = NOT Cyclin_E OR NOT Cyclin_D1
+S_phase_genes = E2F AND NOT pRb
+Mitosis = S_phase_genes AND NOT Mitosis

@@ -1,0 +1,16 @@
+Rim8 = pH
+ESCRT = Rim8
+Cyr1 = Temperature AND NOT Farnesol
+cAMP/PKA = Cyr1
+Efg1 = Efg1_T
+Efg1_T = Brg1 OR NOT Efg1_active
+Efg1_active = (ESCRT OR cAMP_PKA) AND Efg1
+NRG1_T =  NOT Brg1 AND NOT Ume6 AND NOT (Efg1_active AND (ESCRT OR cAMP_PKA)) OR hyphal_initiation
+Nrg1_at_HAGs = NRG1_T AND (NOT HDACs OR HATs)
+Brg1 =  NOT Nrg1_at_HAGs
+HDACs = Brg1
+HATs = Efg1_active AND NOT HDACs
+Ume6 = Brg1 AND NOT Nrg1_HAGs
+hyphal_initiation = (HATs AND Brg1 AND  NOT Nrg1_at_HAGs) OR hyphal_initiation
+HAG_transcription = (Brg1 OR Ume6) AND  NOT Nrg1_at_HAGs
+hyphal_maintenance = (Ume6 AND  NOT Nrg1_HAGs) AND hyphal_initiation

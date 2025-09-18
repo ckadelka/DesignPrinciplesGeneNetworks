@@ -99,8 +99,9 @@ def text_to_BN(folder,textfile,separator_var_func="=",original_not="NOT",origina
     f = open(folder+textfile,'r')
     text = f.read()
     text = text.replace('\t',' ').replace('(',' ( ').replace(')',' ) ')
-    tvec = text.splitlines()
     f.close()
+
+    tvec = text.splitlines()
     
     #Deleting empty lines
     while '' in tvec:

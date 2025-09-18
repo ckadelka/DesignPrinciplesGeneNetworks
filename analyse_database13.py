@@ -2868,7 +2868,7 @@ def plot_proportion_of_specific_type_ffls_clusters(nr_total_ffl_ffl,nr_specific_
 
 if __name__ == '__main__':
     ## Load database
-    max_degree = 20
+    max_degree = 4
     Fs,Is,degrees,degrees_essential,variabless,constantss,models_loaded,models_excluded,models_not_loaded,similar_sets_of_models,n_variables,n_constants,max_degree = load_models_included_in_meta_analysis(max_degree=max_degree,models_to_keep=models_to_keep,models_to_exclude_manually_because_similar_from_same_PID=models_to_exclude_manually_because_similar_from_same_PID)
     N = len(models_loaded)
     
