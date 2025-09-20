@@ -104,7 +104,6 @@ def load_models_included_in_meta_analysis(max_degree=12,max_N=1000,similarity_th
     return Fs,Is,degrees,degrees_essential,variabless,constantss,models_loaded,models_excluded,models_not_loaded,similar_sets,n_variables,n_constants,max_degree
 
 def nice_excel_table(data,xlabel,ylabel,cmap,upto,title):
-    from matplotlib import cm
     import xlsxwriter
     def rgba_to_hex(rgba):
         r,g,b,_ = list(map(int,np.array(list(rgba))*255))
@@ -440,7 +439,7 @@ def compute_type_of_each_regulation_by_model(type_of_each_regulation,N):
     return type_of_each_regulation_by_model
 
 
-def plot_activators_vs_inhibitors_vs_degree(type_of_each_regulation,N,figsize=(3.43,3.1)):
+def plot_activators_vs_inhibitors_vs_degree(type_of_each_regulation,N,figsize=(3.43,3.1),SHOW_N=False):
     color_unknown = 'black'#[0.5,0.5,0.5]
     color_neg = 'orange'#[0.7,0.7,1]
     color_pos = 'blue'#[1,0.7,0.7]
@@ -463,6 +462,8 @@ def plot_activators_vs_inhibitors_vs_degree(type_of_each_regulation,N,figsize=(3
     type_of_each_regulation_aggregated_prop = type_of_each_regulation_aggregated/sum(type_of_each_regulation_aggregated,0)
     for i,label in enumerate(types):
         ax.bar(x,type_of_each_regulation_aggregated_prop[i,:],bottom=np.sum(type_of_each_regulation_aggregated_prop[:i,:],0),color=colors[i],alpha=0.3)
+    for i,val in enumerate(x):
+        ax.text(val,1.05,'n='+str(np.sum(type_of_each_regulation_aggregated[:,i])),va='center',ha='center',clip_on=False,fontsize=7)
     #ax.legend(['activation','inhibition','conditional'],bbox_to_anchor=(1.05, 0.65))
     #ax.legend(['activation','inhibition','conditional'],loc=8,ncol=1)
     ax.legend(['activating','inhibitory','conditional'],loc=8,ncol=1,title='Type of regulation')
@@ -472,7 +473,7 @@ def plot_activators_vs_inhibitors_vs_degree(type_of_each_regulation,N,figsize=(3
     ax.set_ylabel('Proportion')
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    plt.savefig('activators_vs_inhibitors_vs_degree_N%i.pdf' % N,bbox_inches = "tight")
+    plt.savefig('activators_vs_inhibitors_vs_degree_N%s.pdf' % str(N),bbox_inches = "tight")
 
 
 
@@ -1041,7 +1042,6 @@ def plot_proportion_of_coherent_vs_incoherent_ffls_by_model(nr_ffls,nr_real_ffls
 
     DONT_SHOW_ZERO_FFLS_NETWORKS = True
     LOG=False
-    nr_ffls-nr_notreal_ffls
     sorted_sizes = np.array(sorted(zip(nr_real_ffls,nr_coherent_ffls/nr_real_ffls,nr_incoherent_ffls/nr_real_ffls,nr_unknown_ffls/nr_real_ffls),key=lambda x: (x[0],x[1]))).T
     if DONT_SHOW_ZERO_FFLS_NETWORKS:
         index = list(sorted_sizes[0]>0).index(True)
@@ -1141,7 +1141,7 @@ def plot_total_count_of_specific_ffls_old(nr_specific_ffls,nr_unknown_ffls,N,fig
         arrow_new(ax2,i-epsilon,-yoffset-0.52*total_length_y,epsilon*1.25,-0.48*total_length_y,fc=color,ec=color,color=color,clip_on=False,arrowstyle=matplotlib.patches.ArrowStyle.Fancy(head_length=head_length, head_width=head_width, tail_width=.4))#),head_width=0.2,head_length=head_length,length_includes_head=True,color='k')
     ax2.set_yticks([])
     plt.gcf().subplots_adjust(bottom=0.3,left=0.2)
-    plt.savefig('total_count_of_specific_ffls_nice_N%i.pdf' % N,bbox_inches = "tight")
+    plt.savefig('total_count_of_specific_ffls_nice_N%s.pdf' % str(N),bbox_inches = "tight")
     return order
 
 def plot_proportion_of_specific_ffls_per_model(nr_real_ffls,nr_specific_ffls,nr_unknown_ffls,N):
@@ -1306,7 +1306,7 @@ def plot_total_count_of_specific_ffls(nr_specific_ffls,nr_unknown_ffls,expected_
         arrow_new(ax2,i-epsilon,-yoffset-0.52*total_length_y,epsilon*1.25,-0.48*total_length_y,fc=color,ec=color,color=color,clip_on=False,arrowstyle=matplotlib.patches.ArrowStyle.Fancy(head_length=head_length, head_width=head_width, tail_width=.4))#),head_width=0.2,head_length=head_length,length_includes_head=True,color='k')
     ax2.set_yticks([])
     plt.gcf().subplots_adjust(bottom=0.3,left=0.2)
-    plt.savefig('total_count_of_specific_ffls_nice_N%i.pdf' % N,bbox_inches = "tight")
+    plt.savefig('total_count_of_specific_ffls_nice_N%s.pdf' % str(N),bbox_inches = "tight")
     return order
 
 
@@ -1447,7 +1447,6 @@ def compute_all_FBLs(Fs,Is,degrees,constantss,max_degree,max_loop=6):
 
     all_loops = []
     all_types = []
-    triads = []
     for i in range(len(Fs)):
         if all_max_degrees[i]>max_degree:
             all_types.append([])
@@ -1568,7 +1567,6 @@ def plot_total_count_of_specific_FBLs(nr_specific_k_loops,nr_unknown_loops,N,max
 def plot_total_count_of_pos_vs_neg_FBLs(nr_specific_k_loops,nr_unknown_loops,prop_pos_separate,prop_pos_specific_scc_of_loop2,N,max_loop=6):
     import matplotlib
     import scipy.special
-    color_unknown = [0.5,0.5,0.5]
     #total count, specific type of loops
     cmap = matplotlib.cm.tab20c
 
@@ -1649,350 +1647,13 @@ def plot_total_count_of_pos_vs_neg_FBLs(nr_specific_k_loops,nr_unknown_loops,pro
     ax.set_ylabel('Proportion')
     
     #plt.tight_layout()
-    plt.savefig('total_count_of_specific_%iloops_N%i_NULLMODEL%i.pdf' % (k+1,N,NULLMODEL),bbox_inches = "tight")
-
-
-
-
-# def plot_pos_vs_neg_regulations_in_FBLs(Fs,nr_specific_k_loops,N):
-#     import matplotlib
-#     #expected proportion based on proportion pos vs neg regulations
-#     def associate_number_monotonic(*args):
-#         res = []
-#         for el in args:
-#             if el == 'decreasing':
-#                 res.append(1)
-#             elif el== 'increasing':
-#                 res.append(0)
-#             elif el== 'not essential':
-#                 res.append(-2)        
-#             else:
-#                 res.append(-1)        
-#         return res
-    
-#     def arrow_new(self, x, y, dx, dy, **kwargs):
-#         kwargs.setdefault('arrowstyle', 'simple, head_width=10, head_length=10')
-#         kwargs.setdefault('fc', 'black')
-#         x = self.convert_xunits(x)
-#         y = self.convert_yunits(y)
-#         dx = self.convert_xunits(dx)
-#         dy = self.convert_yunits(dy)
-#         posA = x, y
-#         posB = x+dx, y+dy
-#         a = matplotlib.patches.FancyArrowPatch(posA=posA, posB=posB, **kwargs)
-#         self.add_artist(a)
-#         return a
-    
-#     res = []
-#     res_separate = []
-#     for i,F in enumerate(Fs):
-#         dummy = []
-#         for f in F:
-#             if len(f)==0: #happens if actual degree_f > max_degree
-#                 continue
-#             (NONDEGENERATED,monotonic) = can.is_monotonic(f,True)
-#             nrs = associate_number_monotonic(*monotonic)
-#             n_essential=sum([el!=-2 for el in nrs])
-#             n = len(nrs)
-#             for el in nrs:
-#                 res.append([i,n_essential,n,el])
-#                 if el in [0,1]:
-#                     dummy.append(el)
-#         res_separate.append((len(dummy)-sum(dummy))/len(dummy))
-    
-#     res = np.array(res)
-#     #np.c_[np.array(np.round(res_separate,2)*100,dtype=int),nr_specific_k_loops[5,:-1,:].T]
-    
-#     prop_pos = sum(res[:,3]==0)/(sum(res[:,3]==0)+sum(res[:,3]==1))
-#     neg_of_ns = [[4,4],[3,4],[6,6],[5,6],[4,6]]
-    
-#     f,ax = plt.subplots(figsize=(6,2.5))
-#     width=0.8
-#     height_rectangle = 0.08
-#     epsilon = 0.05
-#     colors = ['blue','orange']
-#     for i,neg_of_n in enumerate(neg_of_ns):
-#         nr_neg,k = neg_of_n
-#         nr_pos = k-nr_neg
-#         more_pos = sum(nr_specific_k_loops[k-1,nr_pos,:])
-#         more_neg = sum(nr_specific_k_loops[k-1,nr_neg,:])
-#         total_nr_loops = more_pos+more_neg
-#         ax.bar([2*i-width/2-epsilon],[more_pos/total_nr_loops],width=width,color=colors[0],alpha=0.3)
-#         ax.bar([2*i-width/2-epsilon],[more_neg/total_nr_loops],bottom=[more_pos/total_nr_loops],width=width,color=colors[1],alpha=0.3)
-#         ax.text(2*i,1.05,'n=%i' % total_nr_loops,va='center',ha='center',clip_on=False )
-#         ax.text(2*i-width/2-epsilon,more_pos/total_nr_loops/2,str(nr_neg)+r'$+$'+'\n'+str(nr_pos)+r'$-$',va='center',ha='center')
-#         ax.text(2*i-width/2-epsilon,more_pos/total_nr_loops+more_neg/total_nr_loops/2,str(nr_pos)+r'$+$'+'\n'+str(nr_neg)+r'$-$',va='center',ha='center')
-#         expected_more_pos = prop_pos**nr_neg*(1-prop_pos)**nr_pos
-#         expected_more_neg = prop_pos**nr_pos*(1-prop_pos)**nr_neg
-#         total_expected = expected_more_pos+expected_more_neg
-#         ax.bar([2*i+width/2+epsilon],[expected_more_pos/total_expected],width=width,color=colors[0])
-#         ax.bar([2*i+width/2+epsilon],[expected_more_neg/total_expected],bottom=[expected_more_pos/total_expected],width=width,color=colors[1])
-    
-#     ax.add_patch(matplotlib.patches.Rectangle([2*len(neg_of_ns),0.75],1,height_rectangle,color=colors[0],clip_on=False))
-#     ax.add_patch(matplotlib.patches.Rectangle([2*len(neg_of_ns),0.65],1,height_rectangle,color=colors[1],clip_on=False))
-#     ax.text(2*len(neg_of_ns)+1.2,0.75+height_rectangle/2,'more positive regulations',ha='left',va='center')
-#     ax.text(2*len(neg_of_ns)+1.2,0.65+height_rectangle/2,'more negative regulations',ha='left',va='center')
-    
-#     ax.add_patch(matplotlib.patches.Rectangle([2*len(neg_of_ns),0.35],0.5,height_rectangle,color=colors[0],alpha=0.3,clip_on=False))
-#     ax.add_patch(matplotlib.patches.Rectangle([2*len(neg_of_ns)+0.5,0.35],0.5,height_rectangle,color=colors[1],alpha=0.3,clip_on=False))
-#     ax.add_patch(matplotlib.patches.Rectangle([2*len(neg_of_ns),0.25],1,height_rectangle,color=colors[0],alpha=1,clip_on=False))
-#     ax.add_patch(matplotlib.patches.Rectangle([2*len(neg_of_ns)+0.5,0.25],0.5,height_rectangle,color=colors[1],alpha=1,clip_on=False))
-#     ax.text(2*len(neg_of_ns)+1.2,0.35+height_rectangle/2,'observed',ha='left',va='center')
-#     ax.text(2*len(neg_of_ns)+1.2,0.25+height_rectangle/2,'expected',ha='left',va='center')
-    
-#     #ax.set_ylim([0,1])
-#     ## Hide the right and top spines
-#     #ax.spines['right'].set_visible(False)
-#     #ax.spines['top'].set_visible(False)
-#     ## Only show ticks on the left and bottom spines
-#     #ax.yaxis.set_ticks_position('left')
-#     #ax.xaxis.set_ticks_position('none')
-#     #ax.xaxis.set_ticks([])
-#     #ax.set_ylabel('Proportion')
-#     #plt.savefig('pos_vs_neg_regulations_in_loop_N%i_nice.pdf' % len(Fs),bbox_inches = "tight")
-    
-#     arrow_new(ax,2*len(neg_of_ns)+1,1.05,-1,0,clip_on=False)
-#     ax.text(2*len(neg_of_ns)+1.2,1.05,'total number observed',ha='left',va='center')
-    
-#     arrow_new(ax,2*len(neg_of_ns)+1,-0.07,-1,0,clip_on=False)
-#     ax.text(2*len(neg_of_ns)+1.2,-0.07,'type of feedback loop',ha='left',va='center')
-    
-#     ax.plot([-width-epsilon,2*1+width+epsilon],[-0.13,-0.13],'k-',clip_on=False,lw=0.5)
-#     ax.text(1,-0.2,'4-loops',ha='center',va='center')
-#     ax.plot([2*2-width-epsilon,2*4+width+epsilon],[-0.13,-0.13],'k-',clip_on=False,lw=0.5)
-#     ax.text(6,-0.2,'6-loops',ha='center',va='center')
-    
-#     ax.set_ylim([0,1])
-#     ax.set_xlim([-1,2*len(neg_of_ns)-1])
-#     # Hide the right and top spines
-#     ax.spines['right'].set_visible(False)
-#     ax.spines['top'].set_visible(False)
-#     # Only show ticks on the left and bottom spines
-#     ax.yaxis.set_ticks_position('left')
-#     ax.xaxis.set_ticks_position('none')
-#     ax.xaxis.set_ticks(2*np.arange(len(neg_of_ns)))
-#     ax.xaxis.set_ticklabels(['positive' if el[0]%2==0 else 'negative' for el in neg_of_ns])
-#     ax.set_ylabel('Proportion')
-#     plt.savefig('pos_vs_neg_regulations_in_loop_N%i_nice.pdf' % len(Fs),bbox_inches = "tight")
+    plt.savefig('total_count_of_specific_%iloops_N%s_NULLMODEL%i.pdf' % (k+1,str(N),NULLMODEL),bbox_inches = "tight")
 
 
 
 
 
-
-# def plot_pos_vs_neg_regulations_in_FBLs_better(Fs,nr_specific_k_loops,all_loops,N):
-#     import matplotlib
-#     import scipy.special
-#     #expected proportion based on proportion pos vs neg regulations
-#     def associate_number_monotonic(*args):
-#         res = []
-#         for el in args:
-#             if el == 'decreasing':
-#                 res.append(1)
-#             elif el== 'increasing':
-#                 res.append(0)
-#             elif el== 'not essential':
-#                 res.append(-2)        
-#             else:
-#                 res.append(-1)        
-#         return res
-    
-#     def arrow_new(self, x, y, dx, dy, **kwargs):
-#         kwargs.setdefault('arrowstyle', 'simple, head_width=10, head_length=10')
-#         kwargs.setdefault('fc', 'black')
-#         x = self.convert_xunits(x)
-#         y = self.convert_yunits(y)
-#         dx = self.convert_xunits(dx)
-#         dy = self.convert_yunits(dy)
-#         posA = x, y
-#         posB = x+dx, y+dy
-#         a = matplotlib.patches.FancyArrowPatch(posA=posA, posB=posB, **kwargs)
-#         self.add_artist(a)
-#         return a
-    
-#     res = []
-#     prop_pos_separate = []
-#     prop_pos_separate_by_scc = []
-#     number_edges_separate_by_scc = []
-#     sccs = []
-#     total_edges_separate = []
-#     for I,var in zip(Is,variabless):
-#         n_var = len(var)
-#         total_edges_separate.append(sum(map(len,I[:n_var])))
-    
-#     import networkx as nx
-#     all_dict_sccs = []
-#     for i,(F,I,var) in enumerate(zip(Fs,Is,variabless)): 
-#         n_var = len(var)
-        
-#         G = can.generate_networkx_graph_from_edges(I[:n_var],n_var)
-#         sccs.append([list(scc) for scc in nx.strongly_connected_components(G)])
-#         n_sccs = len(sccs[-1])
-#         dict_sccs = {}
-#         for i in range(n_sccs):
-#             for el in sccs[-1][i]:
-#                 dict_sccs.update({el:i})
-#         all_dict_sccs.append(dict_sccs)
-#         dummy = [[] for _ in range(n_sccs)]
-#         dummy2 = []
-#         for target,f in enumerate(F[:n_var]):
-#             if len(f)==0: #happens if actual degree_f > max_degree
-#                 continue
-#             (NONDEGENERATED,monotonic) = can.is_monotonic(f,True)
-#             nrs = associate_number_monotonic(*monotonic)
-#             n_essential=sum([el!=-2 for el in nrs])
-#             n = len(nrs)
-#             scc_target = dict_sccs[target]
-#             for el,regulator in zip(nrs,I[target]):
-#                 try:
-#                     scc_regulator = dict_sccs[regulator]
-#                 except KeyError: #happens if regulator is an external parameter, thus clearly not in the same SCC as the target
-#                     continue
-#                 if scc_target==scc_regulator and el in [0,1]:
-#                     dummy[scc_target].append(el)
-#             for el in nrs:
-#                 res.append([i,n_essential,n,el])
-#                 if el in [0,1]:
-#                     dummy2.append(el)            
-#         prop_pos_separate.append((len(dummy2)-sum(dummy2))/len(dummy2))
-#         prop_pos_separate_by_scc.append([(len(vec)-sum(vec))/len(vec) if vec!=[] else np.nan for vec in dummy])
-#         number_edges_separate_by_scc.append([len(vec) for vec in dummy])
-#     res = np.array(res)    
-#     prop_pos_separate = np.array(prop_pos_separate)
-#     prop_pos_separate_by_scc = np.array(prop_pos_separate_by_scc)
-#     number_edges_separate_by_scc = np.array(number_edges_separate_by_scc)
-#     total_edges_separate = np.array(total_edges_separate)
-#     prop_edges_in_largest_scc = np.array(list(map(max,number_edges_separate_by_scc)))/total_edges_separate
-#     prop_pos_in_largest_scc = [prop_pos_separate_by_scc[i][np.argmax(number_edges_separate_by_scc[i])] for i in range(N)]
-#     size_largest_scc = [len(sccs[i][np.argmax(number_edges_separate_by_scc[i])]) for i in range(N)]
-    
-#     max_loop=6
-#     nr_specific_k_loops = np.zeros((max_loop,max_loop+1,N),dtype=int)
-#     prop_pos_specific_scc_of_loop = [[[[] for ii in range(N)] for j in range(max_loop+1)] for i in range(max_loop)]
-#     prop_pos_specific_scc_of_loop2 = [[] for i in range(max_loop)]
-#     for ii,(types,loops) in enumerate(zip(all_types,all_loops)):
-#         for (type_,loop) in zip(types,loops):
-#             k = len(type_)
-#             el = can.get_loop_type_number(type_)
-#             if el<0:
-#                 continue
-#             nr_neg = el
-#             nr_pos = k-nr_neg
-#             nr_specific_k_loops[k-1,el,ii] += 1
-#             id_scc = all_dict_sccs[ii][loop[0]]
-#             p_pos = prop_pos_separate_by_scc[ii][id_scc]
-#             prop_pos_specific_scc_of_loop2[k-1].append( [scipy.special.binom(k,j) * p_pos**(k-j) * (1-p_pos)**j for j in range(k+1)] )
-            
-#             prop_pos = p_pos**nr_pos * (1-p_pos)**nr_neg
-#             prop_neg = p_pos**nr_neg * (1-p_pos)**nr_pos
-#             prop_pos_specific_scc_of_loop[k-1][el][ii].append(prop_pos/(prop_pos+prop_neg))#p_pos)
-#         for i in range(max_loop):
-#             for j in range(max_loop+1):
-#                 if len(prop_pos_specific_scc_of_loop[i][j][ii]) > 0:
-#                     prop_pos_specific_scc_of_loop[i][j][ii] = np.mean(prop_pos_specific_scc_of_loop[i][j][ii])
-#                 else:
-#                     prop_pos_specific_scc_of_loop[i][j][ii] = np.nan
-#     prop_pos_specific_scc_of_loop = np.array(prop_pos_specific_scc_of_loop)
-        
-#     A = pd.DataFrame(np.c_[prop_pos_separate,prop_pos_in_largest_scc,size_largest_scc,list(map(len,variabless)),prop_edges_in_largest_scc,np.sum(nr_specific_k_loops,1)[3],np.sum(nr_specific_k_loops,1)[5]])
-#     A.to_excel('out.xlsx')
-    
-    
-#     prop_pos = sum(res[:,3]==0)/(sum(res[:,3]==0)+sum(res[:,3]==1))
-#     neg_of_ns = [[4,4],[3,4],[6,6],[5,6],[4,6]]
-    
-#     for NULLMODEL in [1,2,3]:
-        
-#         f,ax = plt.subplots(figsize=(4.2,2))
-#         width=0.8
-#         height_rectangle = 0.08
-#         epsilon = 0.05
-#         colors = ['blue','orange']
-        
-#         for i,neg_of_n in enumerate(neg_of_ns):
-#             nr_neg,k = neg_of_n
-#             nr_pos = k-nr_neg
-#             more_pos = nr_specific_k_loops[k-1,nr_pos,:]
-#             more_neg = nr_specific_k_loops[k-1,nr_neg,:]
-#             total_nr_loops = more_pos+more_neg
-            
-#             sum_more_pos = sum(more_pos)
-#             sum_more_neg = sum(more_neg)
-#             sum_total_nr_loops = sum(total_nr_loops)
-            
-#             ax.bar([2*i-width/2-epsilon],[sum_more_pos/sum_total_nr_loops],width=width,color=colors[0],alpha=0.3)
-#             ax.bar([2*i-width/2-epsilon],[sum_more_neg/sum_total_nr_loops],bottom=[sum_more_pos/sum_total_nr_loops],width=width,color=colors[1],alpha=0.3)
-#             ax.text(2*i,1.05,'n=%i' % sum_total_nr_loops,va='center',ha='center',clip_on=False )
-#             ax.text(2*i-width/2-epsilon,sum_more_pos/sum_total_nr_loops/2,str(nr_neg)+r'$+$'+'\n'+str(nr_pos)+r'$-$',va='center',ha='center')
-#             ax.text(2*i-width/2-epsilon,sum_more_pos/sum_total_nr_loops + sum_more_neg/sum_total_nr_loops/2,str(nr_pos)+r'$+$'+'\n'+str(nr_neg)+r'$-$',va='center',ha='center')
-#             if NULLMODEL==1:
-#                 expected_more_pos = prop_pos**nr_neg*(1-prop_pos)**nr_pos
-#                 expected_more_neg = prop_pos**nr_pos*(1-prop_pos)**nr_neg
-#             elif NULLMODEL==2:
-#                 expected_more_pos = np.dot(total_nr_loops,prop_pos_separate**nr_neg * (1-prop_pos_separate)**nr_pos)
-#                 expected_more_neg = np.dot(total_nr_loops,prop_pos_separate**nr_pos * (1-prop_pos_separate)**nr_neg)
-#             elif NULLMODEL==3:
-#                 dummy = prop_pos_specific_scc_of_loop[k-1,nr_pos]
-#                 isnotnan = np.isnan(prop_pos_specific_scc_of_loop[k-1,nr_neg])==False
-#                 dummy[isnotnan] = 1-prop_pos_specific_scc_of_loop[k-1,nr_neg][isnotnan]
-#                 expected_more_pos = np.nansum(total_nr_loops * dummy)#prop_pos_specific_scc_of_loop[k-1,nr_pos]**nr_neg * (1-prop_pos_specific_scc_of_loop[k-1,nr_pos])**nr_pos)
-#                 expected_more_neg = np.nansum(total_nr_loops * (1-dummy))#prop_pos_specific_scc_of_loop[k-1,nr_pos]**nr_pos * (1-prop_pos_specific_scc_of_loop[k-1,nr_pos])**nr_neg)
-#             total_expected = expected_more_pos+expected_more_neg
-#             print(NULLMODEL,neg_of_n,expected_more_pos/total_expected*100,expected_more_neg/total_expected*100)
-#             ax.bar([2*i+width/2+epsilon],[expected_more_pos/total_expected],width=width,color=colors[0])
-#             ax.bar([2*i+width/2+epsilon],[expected_more_neg/total_expected],bottom=[expected_more_pos/total_expected],width=width,color=colors[1])
-        
-#         ax.add_patch(matplotlib.patches.Rectangle([3,1.25],0.5,height_rectangle,color=colors[0],alpha=0.3,clip_on=False))
-#         ax.add_patch(matplotlib.patches.Rectangle([3.5,1.25],0.5,height_rectangle,color=colors[0],alpha=1,clip_on=False))
-#         ax.add_patch(matplotlib.patches.Rectangle([3,1.15],0.5,height_rectangle,color=colors[1],alpha=0.3,clip_on=False))
-#         ax.add_patch(matplotlib.patches.Rectangle([3.5,1.15],0.5,height_rectangle,color=colors[1],alpha=1,clip_on=False))
-#         ax.text(4.3,1.25+height_rectangle/2,'more positive edges',ha='left',va='center')
-#         ax.text(4.3,1.15+height_rectangle/2,'more negative edges',ha='left',va='center')
-        
-#         ax.add_patch(matplotlib.patches.Rectangle([-1,1.25],0.5,height_rectangle,color=colors[0],alpha=0.3,clip_on=False))
-#         ax.add_patch(matplotlib.patches.Rectangle([-0.5,1.25],0.5,height_rectangle,color=colors[1],alpha=0.3,clip_on=False))
-#         ax.add_patch(matplotlib.patches.Rectangle([-1,1.15],1,height_rectangle,color=colors[0],alpha=1,clip_on=False))
-#         ax.add_patch(matplotlib.patches.Rectangle([-0.5,1.15],0.5,height_rectangle,color=colors[1],alpha=1,clip_on=False))
-#         ax.text(0.3,1.25+height_rectangle/2,'observed',ha='left',va='center')
-#         ax.text(0.3,1.15+height_rectangle/2,'expected',ha='left',va='center')
-        
-#         #ax.set_ylim([0,1])
-#         ## Hide the right and top spines
-#         #ax.spines['right'].set_visible(False)
-#         #ax.spines['top'].set_visible(False)
-#         ## Only show ticks on the left and bottom spines
-#         #ax.yaxis.set_ticks_position('left')
-#         #ax.xaxis.set_ticks_position('none')
-#         #ax.xaxis.set_ticks([])
-#         #ax.set_ylabel('Proportion')
-#         #plt.savefig('pos_vs_neg_regulations_in_loop_N%i_nice.pdf' % len(Fs),bbox_inches = "tight")
-        
-#         # arrow_new(ax,2*len(neg_of_ns)+1,1.05,-1,0,clip_on=False)
-#         # ax.text(2*len(neg_of_ns)+1.2,1.05,'total number observed',ha='left',va='center')
-        
-#         # arrow_new(ax,2*len(neg_of_ns)+1,-0.07,-1,0,clip_on=False)
-#         # ax.text(2*len(neg_of_ns)+1.2,-0.07,'type of feedback loop',ha='left',va='center')
-        
-#         ax.plot([-width-epsilon,2*1+width+epsilon],[-0.16,-0.16],'k-',clip_on=False,lw=0.5)
-#         ax.text(1,-0.22,'4-loops',ha='center',va='center')
-#         ax.plot([2*2-width-epsilon,2*4+width+epsilon],[-0.16,-0.16],'k-',clip_on=False,lw=0.5)
-#         ax.text(6,-0.22,'6-loops',ha='center',va='center')
-        
-#         ax.set_ylim([0,1])
-#         ax.set_xlim([-1,2*len(neg_of_ns)-1])
-#         # Hide the right and top spines
-#         ax.spines['right'].set_visible(False)
-#         ax.spines['top'].set_visible(False)
-#         # Only show ticks on the left and bottom spines
-#         ax.yaxis.set_ticks_position('left')
-#         ax.xaxis.set_ticks_position('none')
-#         ax.xaxis.set_ticks(2*np.arange(len(neg_of_ns)))
-#         ax.xaxis.set_ticklabels(['positive' if el[0]%2==0 else 'negative' for el in neg_of_ns])
-#         ax.set_ylabel('Proportion')
-#         plt.savefig('pos_vs_neg_regulations_in_loop_N%i_nice_NULLMODEL%i.pdf' % (len(Fs),NULLMODEL),bbox_inches = "tight")
-
-
-def get_null_expectations_fbl(Fs,Is,variabless):
+def get_null_expectations_fbl(Fs,Is,variabless,all_types,all_loops):
     import networkx as nx
     import scipy.special
     def associate_number_monotonic(*args):
@@ -2007,6 +1668,8 @@ def get_null_expectations_fbl(Fs,Is,variabless):
             else:
                 res.append(-1)        
         return res
+    
+    N = len(Fs)
     
     res = []
     prop_pos_separate = []
@@ -2189,7 +1852,7 @@ def plot_pos_vs_neg_regulations_in_FBLs_best(Fs,nr_specific_k_loops,all_loops,pr
     ax.xaxis.set_ticklabels(['positive' if el[0]%2==0 else 'negative' for el in neg_of_ns])
     ax.xaxis.set_ticklabels(['%i vs %i' % (el[0],el[1]-el[0]) for el in neg_of_ns])
     ax.set_ylabel('Proportion')
-    plt.savefig('pos_vs_neg_regulations_in_loop_N%i_nice_NULLMODELall.pdf' % (len(Fs)),bbox_inches = "tight")
+    plt.savefig('pos_vs_neg_regulations_in_loop_N%s_nice_NULLMODELall.pdf' % (str(N)),bbox_inches = "tight")
 
 
 
@@ -2907,6 +2570,75 @@ if __name__ == '__main__':
     ## Canalization
     depths,layer_structures,all_ncfs,layer_structures_ncf,ks_per_n = get_canalizing_depths(Fs_essential,degrees_essential,n_variables,N)
     write_excel_files_canalizing_depth(ks_per_n,N)
+
+    #new supplementary figure: Figure S3
+    import math
+    def nchoosek(population, sample):
+        "Returns `population` choose `sample`."
+        s = max(sample, population - sample)
+        assert s <= population
+        assert population > -1
+        if s == population:
+            return 1
+        numerator = 1
+        denominator = 1
+        for i in range(s+1, population + 1):
+            numerator *= i
+            denominator *= (i - s)
+        return numerator/denominator
+    def number_canalizing(n):
+        return 2*((-1)**n -n - 1) + sum([(-1)**(k+1) * nchoosek(n,k) * 2**(k+1) * 2**(2**(n-k)) for k in range(1,n+1)])    
+    upto=10
+    log10_proportion_canalizing_expected = []
+    for n in range(2,upto+1):
+        log10_proportion_canalizing_expected.append(math.log10(number_canalizing(n)) - 2**n * math.log10(2) )
+    proportion_canalizing_observed = (np.sum(ks_per_n[:,1:],1)/np.sum(ks_per_n,1))[2:upto+1]
+    
+    f,ax = plt.subplots(figsize=(3.3,4))
+    ax.plot(range(2,upto+1),(proportion_canalizing_observed),'x--',label='observed')
+    ax.semilogy(range(2,upto+1),10**np.array(log10_proportion_canalizing_expected),'o:',label='expected')
+    ax.legend(loc='best',frameon=False)
+    ax.set_xlabel(r'number of inputs, $n$')
+    ax.set_ylabel('proportion of canalizing functions\n'+r'(i.e., functions with canalizing depth $k>0$)')
+    ax.set_xticks(range(2,upto+1))
+    ax.set_yticks([1e-150,1e-120,1e-90,1e-60,1e-30,1])
+    ax.set_yticklabels(ax.get_yticklabels()[:-1] + [r'$1$'])
+    plt.savefig('prop_canalizing_exp_vs_obs_N%i.pdf' % N,bbox_inches = "tight")    
+
+    def sterling_times_fak_r(n,r):
+        return sum([((-1)**i)*nchoosek(r,i)*(r-i)**n for i in range(r+1)])
+        
+    def sterling_difference(n,r):
+        return r**n+sum([(-1)**i*nchoosek(r-1,i-1)*(r-i)**(n-1)*(r**2*1./i-r+n) for i in range(1,r+1)])
+    
+    def number_ncfs(n,p):
+        if n==1 and p==2:
+            return (2,0,2)
+        if p==2:
+            N1=0
+        else:
+            N1=2**(n-1)*p*(p-2)*(p-1)**n*sum([(p-1)**(r-1)*n*sterling_times_fak_r(n-1,r-1) for r in range(2,n+1)])
+        #N2=2**n*p*(p-1)**n*sum([(p-1)**r*(sterling_times_fak_r(n,r)-n*sterling_times_fak_r(n-1,r-1)) for r in range(1,n)])
+        N2=2**n*p*(p-1)**n*sum([(p-1)**r*sterling_difference(n,r) for r in range(1,n)])
+        return N1+N2,N1,N2
+
+    upto=10
+    log10_proportion_nested_canalizing_expected = []
+    for n in range(2,upto+1):
+        log10_proportion_nested_canalizing_expected.append(math.log10(number_ncfs(n,2)[0]) - 2**n * math.log10(2) )
+    proportion_nested_canalizing_observed = (np.diag(ks_per_n)/np.sum(ks_per_n,1))[2:upto+1]
+    
+    f,ax = plt.subplots(figsize=(3.3,4))
+    ax.plot(range(2,upto+1),(proportion_nested_canalizing_observed),'x--',label='observed')
+    ax.semilogy(range(2,upto+1),10**np.array(log10_proportion_nested_canalizing_expected),'o:',label='expected')
+    ax.legend(loc='best',frameon=False)
+    ax.set_xlabel(r'number of inputs, $n$')
+    ax.set_ylabel('proportion of nested canalizing functions\n'+r'(i.e., functions with canalizing depth $k=n$)')
+    ax.set_xticks(range(2,upto+1))
+    ax.set_yticks([1e-300,1e-240,1e-180,1e-120,1e-60,1])
+    ax.set_yticklabels(ax.get_yticklabels()[:-1] + [r'$1$'])
+    plt.savefig('prop_nested_canalizing_exp_vs_obs_N%i.pdf' % N,bbox_inches = "tight")    
+
     res_from_get_number_of_layers = get_number_of_layers(Fs_essential)
     for degree in [3,4,5]:
         get_canalizing_input_and_output_distribution_of_NCFs(res_from_get_number_of_layers,N,degree=degree)
@@ -2925,7 +2657,7 @@ if __name__ == '__main__':
     plot_total_count_of_FBLs(nr_pos_loops,nr_neg_loops,nr_unknown_loops,N,max_loop=max_loop)
     plot_total_count_of_specific_FBLs(nr_specific_k_loops,nr_unknown_loops,N,max_loop=max_loop,LEGEND=False)
     
-    prop_pos_separate,prop_pos_separate_by_scc,prop_pos_specific_scc_of_loop,prop_pos_specific_scc_of_loop2 = get_null_expectations_fbl(Fs,Is,variabless)
+    prop_pos_separate,prop_pos_separate_by_scc,prop_pos_specific_scc_of_loop,prop_pos_specific_scc_of_loop2 = get_null_expectations_fbl(Fs,Is,variabless,all_types,all_loops)
     plot_total_count_of_pos_vs_neg_FBLs(nr_specific_k_loops,nr_unknown_loops,prop_pos_separate,prop_pos_specific_scc_of_loop2,N,max_loop=max_loop)
     plot_pos_vs_neg_regulations_in_FBLs_best(Fs,nr_specific_k_loops,all_loops,prop_pos_separate,prop_pos_specific_scc_of_loop,N)
     
@@ -3010,8 +2742,112 @@ if __name__ == '__main__':
     
     def flatten(l):
         return [item for sublist in l for item in sublist]
+    
+    
+    #load kingdom information to stratify by kingdom
+    general_info_csv = pd.read_excel('general_info_N122_models.xlsx')   
+    pmids_in_excel = np.array(general_info_csv['PMID (model)'][1:])
+    kingdoms_in_excel = np.array(general_info_csv['Organism'][1:])
+    for i in range(N):
+        if ':' in kingdoms_in_excel[i]:
+            kingdoms_in_excel[i] = kingdoms_in_excel[i].split(':')[0]
+    pmids_to_print_dict = dict(zip(pmids_to_print,list(range(N))))
+    kingdoms = ['']*N
+    for i in range(N):
+        kingdoms[pmids_to_print_dict[str(pmids_in_excel[i])]] = kingdoms_in_excel[i]
+    kingdoms = np.array(kingdoms)
+    print(pd.value_counts(kingdoms))
+    kingdoms_of_interest = ['Animal','Bacteria','Fungi','Plant']
+    
+    for kingdom_of_interest in kingdoms_of_interest:
+        print(kingdom_of_interest)
+        print()
+        which = kingdoms == kingdom_of_interest
+        avg_degrees,avg_essential_degrees = print_basic_summary_and_get_average_degree_per_model(list(np.array(Fs)[which]),list(np.array(Is)[which]),list(np.array(degrees)[which]),list(np.array(degrees_essential)[which]),list(np.array(variabless)[which]),list(np.array(constantss)[which]),sum(which),n_variables[which],n_constants[which],max_degree)
+        print()
+        print()
 
-    IR = []
+    sum_types_of_regulation_by_kingdom = []
+    for kingdom_of_interest in kingdoms_of_interest:
+
+        print(kingdom_of_interest)
+        print()
+        which = kingdoms == kingdom_of_interest
+        type_of_each_regulation = compute_type_of_each_regulation_excluding_constants(list(np.array(Fs)[which]),n_variables[which])
+        plot_activators_vs_inhibitors_vs_degree(type_of_each_regulation,kingdom_of_interest,figsize=(4,2.4))
+        print()
+        print()
+
+        sum_types_of_regulation_by_kingdom.append([])
+        #for label in ['increasing','decreasing','not monotonic','not essential']:
+        for label in ['increasing','decreasing','not monotonic']:
+            sum_types_of_regulation_by_kingdom[-1].append(sum(type_of_each_regulation.type==label))
+    
+    sum_types_of_regulation_by_kingdom = np.array(sum_types_of_regulation_by_kingdom)
+    
+    f,ax = plt.subplots()
+    for i in range(3):
+        ax.bar(range(4),sum_types_of_regulation_by_kingdom[:,i]/np.sum(sum_types_of_regulation_by_kingdom,1),bottom = np.sum(sum_types_of_regulation_by_kingdom[:,:i],1)/np.sum(sum_types_of_regulation_by_kingdom,1))
+    
+        
+
+    
+    max_loop=6
+    nr_loops,nr_pos_loops,nr_neg_loops,nr_unknown_loops,nr_notreal_loops,nr_specific_k_loops,nr_real_loops,all_types,all_loops = compute_all_FBLs(Fs,Is,degrees,constantss,max_degree,max_loop=max_loop)
+    prop_pos_separate,prop_pos_separate_by_scc,prop_pos_specific_scc_of_loop,prop_pos_specific_scc_of_loop2 = get_null_expectations_fbl(Fs,Is,variabless,all_types,all_loops)
+
+    for kingdom_of_interest in kingdoms_of_interest:
+        which = kingdoms == kingdom_of_interest
+        expected_number_per_type = get_null_expectations_ffl(nr_specific_ffls[:,which],prop_pos_separate[which],sum(which))
+        order_ffls = plot_total_count_of_specific_ffls(nr_specific_ffls[:,which],nr_unknown_ffls[which],expected_number_per_type,kingdom_of_interest)
+
+    for kingdom_of_interest in kingdoms_of_interest:
+        which = kingdoms == kingdom_of_interest    
+        prop_pos_separate,prop_pos_separate_by_scc,prop_pos_specific_scc_of_loop,prop_pos_specific_scc_of_loop2 = get_null_expectations_fbl(list(np.array(Fs)[which]),list(np.array(Is)[which]),list(np.array(variabless)[which]),list(np.array(all_types)[which]),list(np.array(all_loops)[which]))
+        plot_total_count_of_pos_vs_neg_FBLs(nr_specific_k_loops[:,:,which],nr_unknown_loops[:,which],prop_pos_separate,prop_pos_specific_scc_of_loop2,kingdom_of_interest,max_loop=max_loop)
+        plot_pos_vs_neg_regulations_in_FBLs_best(list(np.array(Fs)[which]),nr_specific_k_loops[:,:,which],all_loops,prop_pos_separate,prop_pos_specific_scc_of_loop,kingdom_of_interest)
+        
+    
+    
+    variabless_simple = [[el.lower().replace('_','').replace('.','').replace('kappa','k') for el in variables] for variables in variabless]
+    
+    
+    all_variables = []
+    for i in range(len(variabless)):
+        #all_variables.extend(list(map(str.lower,variabless[i])))
+        all_variables.extend(variabless_simple[i])
+    all_variables = np.array(all_variables)  
+    
+    
+    kingdoms_of_interest = ['Animal','Bacteria','Fungi','Plant','multiple kingdoms']
+
+    all_unique_variables = list(set(all_variables))
+    all_unique_variables_dict = dict(zip(all_unique_variables,range(len(all_unique_variables))))
+    count = np.zeros((len(all_unique_variables_dict),len(kingdoms_of_interest)),dtype=int)
+    for j,kingdom_of_interest in enumerate(kingdoms_of_interest):
+        which = kingdoms == kingdom_of_interest 
+        for i in range(len(variabless_simple)):
+            if which[i]:
+                for v in variabless_simple[i]:
+                    count[all_unique_variables_dict[v],j] += 1
+    A = pd.DataFrame(np.c_[all_unique_variables,np.sum(count,1),count])
+    A.to_excel('all_variables_with_count.xlsx')
+    
+    
+        
+        
+            
+        
+    
+    
+    
+    
+    
+    
+    
+    
+    #additional figures on criticality and NCFs
+    IR = [] # IR = input redundancy (Gates et al., PNAS, 2021)
     degs = []
     for i,F in enumerate(Fs):
         IR.append([])
@@ -3023,7 +2859,7 @@ if __name__ == '__main__':
             else:
                 IR[-1].append(np.nan)
                 
-    EC = []
+    EC = [] # EC = effective connectivity (Gates et al., PNAS, 2021)
     for F in Fs:
         EC.append([])
         for f in F:
@@ -3046,15 +2882,6 @@ if __name__ == '__main__':
     degs_flat = np.array(flatten(degs))
     degrees_flat = np.array(flatten(degrees))
     bias_flat = np.array(flatten(bias))
-    
-    # data = []
-    # for i,degree in enumerate(range(2,11)):
-    #     which = np.array(can.find_all_indices(degs_flat, degree))
-    #     data.append(degree*(1-IR_flat[which]))
-    # f,ax = plt.subplots()
-    # ax.violinplot(data,showmeans=True,showextrema=False)
-    
-    
     
     
     
@@ -3244,6 +3071,7 @@ if __name__ == '__main__':
     A = pd.DataFrame(res,columns = 'n,n_obs,n_obs (in %),w,effective_connectivity,bias_1_m_bias,average_sensitivity,number of layers,layer structure'.split(','))
     A.to_excel('out_ncf.xlsx')
     
+    import scipy
     width=0.7
     f,ax = plt.subplots()
     colors = [matplotlib.cm.Set1(i) for i in range(8)]
