@@ -31,6 +31,92 @@ def find_all_indices(arr,el):
         raise ValueError('The element is not in the array at all')
     return res
 
+left_side_of_truth_tables = {}
+
+def get_left_side_of_truth_table(N):
+    if N in left_side_of_truth_tables:
+        left_side_of_truth_table = left_side_of_truth_tables[N]
+    else:
+        #left_side_of_truth_table = np.array(list(itertools.product([0, 1], repeat=self.N)))
+        vals = np.arange(2**N, dtype=np.uint64)[:, None]              # shape (2^n, 1)
+        masks = (1 << np.arange(N-1, -1, -1, dtype=np.uint64))[None]  # shape (1, n)
+        left_side_of_truth_table = ((vals & masks) != 0).astype(np.uint8)
+        left_side_of_truth_tables[N] = left_side_of_truth_table
+    return left_side_of_truth_table
+
+
+def f_from_expression(expr : str) -> tuple:
+    """
+    Extract a Boolean function from a string expression.
+
+    The function converts an input expression into its truth table representation.
+    The expression can include Boolean operators and comparisons, and the order
+    of variables is determined by their first occurrence in the expression.
+
+    **Parameters:**
+        
+        - expr (str): A text string containing an evaluable Boolean expression.
+
+    **Returns:**
+        
+        - tuple[list[int], list[str]]:
+            
+            - f (list[int]): The right-hand side of the Boolean function
+              (truth table) as a list of length 2**n, where n is the number
+              of inputs.
+              
+            - var (list[str]): A list of variable names (of length n) in the
+              order they were encountered.
+    
+    **Examples:**
+        
+        >>> f_from_expression('A AND NOT B') #nested canalizing function
+        ([0, 0, 1, 0], ['A', 'B'])
+        
+        >>> f_from_expression('x1 + x2 + x3 > 1') #threshold function
+        ([0, 0, 0, 1, 0, 1, 1, 1], ['x1', 'x2', 'x3'])
+        
+        >>> f_from_expression('(x1 + x2 + x3) % 2 == 0') % linear (XOR) function
+        ([1, 0, 0, 1, 0, 1, 1, 0], ['x1', 'x2', 'x3'])
+    """
+    def is_float(element: any) -> bool:
+        try:
+            float(element)
+            return True
+        except ValueError:
+            return False
+    expr_mod = expr.replace('(', ' ( ').replace(')', ' ) ').replace('!','not ').replace('~','not ')
+    expr_split = expr_mod.split(' ')
+    variables = []
+    dict_var = dict()
+    n_var = 0
+    for i, el in enumerate(expr_split):
+        if el not in ['',' ','(',')','and','or','not','AND','OR','NOT','&','|','+','-','*','%','>','>=','==','<=','<'] and not is_float(el):#el.isdigit():
+            try:
+                new_var = dict_var[el]
+            except KeyError:
+                new_var = 'x[%i]' % n_var
+                dict_var.update({el: new_var})
+                variables.append(el)
+                n_var += 1
+            expr_split[i] = el
+        elif el in ['AND', 'and']:
+            expr_split[i] = '&'
+        elif el in ['OR', 'or']:
+            expr_split[i] = '|'
+        elif el in ['NOT', 'not']:
+            expr_split[i] = '~'
+    expr_mod = ' '.join(expr_split)
+    
+    truth_table = get_left_side_of_truth_table(n_var)
+    local_dict = {var: truth_table[:, i] for i, var in enumerate(variables)}
+    f = eval(expr_mod, {"__builtins__": None}, local_dict)
+
+    return np.array(f,dtype=int), np.array(variables)
+
+
+
+
 def text_to_BN(folder,textfile,separator_var_func="=",original_not="NOT",original_and="AND",original_or="OR",new_not=" not ",new_and=" and ",new_or=" or ",max_degree=15,TREATMENT_OF_CONSTANTS=1,max_N=10000):
     '''
     This function takes as input a textfile in directory folder, 
@@ -156,13 +242,14 @@ def text_to_BN(folder,textfile,separator_var_func="=",original_not="NOT",origina
         
     F = []
     for i in range(n):
-        f = np.array([],dtype=int)
-        if degree[i]<=max_degree:
-            X = list(itertools.product([0, 1], repeat = degree[i]))
-            for j in range(2**degree[i]):
-                x = X[j] #x is used "implicitly" in the next line!!
-                f = np.append(f,eval(tvec_mod[i])%2) #x is used here "implicitly"
-        F.append(f)
+        f = f_from_expression()
+        # f = np.array([],dtype=int)
+        # if degree[i]<=max_degree:
+        #     X = list(itertools.product([0, 1], repeat = degree[i]))
+        #     for j in range(2**degree[i]):
+        #         x = X[j] #x is used "implicitly" in the next line!!
+        #         f = np.append(f,eval(tvec_mod[i])%2) #x is used here "implicitly"
+        # F.append(f)
         
     
     if TREATMENT_OF_CONSTANTS==1:
@@ -308,6 +395,67 @@ def load_database(folders,separator_var_func="=",original_not="NOT",original_and
             constantss.append(constants)
     return [Fs,Is,degrees,degrees_essential,variabless,constantss,models_loaded,models_not_loaded]
 
+
+def write_database_to_pickle(folders,separator_var_func="=",original_not="NOT",original_and="AND",original_or="OR",new_not=" not ",new_and=" and ",new_or=" or ",max_degree=15,max_N=10000):
+    '''
+    '''
+
+    models_not_loaded = []
+    for folder in folders:
+        for fname in os.listdir(folder):
+            print(fname)
+            continue
+            if fname.endswith('tabular.txt'): #first check if it is a model that is already available in tabular form
+                try:
+                    textfile = fname
+                    F,I,degree,variables, constants = load_tabular_model(folder,fname,max_N=max_N)
+                    print(textfile,'converted')
+                except:
+                    models_not_loaded.append(textfile)
+                    print()
+                    print(textfile,'failed')
+                    print()
+                    continue
+            elif fname.endswith('.txt'):
+                try:
+                    textfile = fname
+                    F,I,degree,variables, constants = text_to_BN(folder,textfile,max_degree=max_degree,max_N=max_N)
+                    print(textfile,'converted')
+                except:
+                    models_not_loaded.append(textfile)
+                    print()
+                    print(textfile,'failed')
+                    print()
+                    continue
+            else:
+                continue
+            #if len(constants)>0:
+            #    print(textfile,'has %i constants' % len(constants))
+            f = open(folder+textfile.split('.')[0]+'.pickle','wb')
+            pickle.dump([F,I,variables + constants],f)
+            f.close()
+    return 
+
+
+def load_database_from_pickle(folders):
+    '''
+    '''
+
+    for folder in folders:
+        for fname in os.listdir(folder):
+            if fname.split('.')[1]=='pickle':
+                f = open(folder+fname,'rb')
+                F,I,var = pickle.load(f)
+                f.close()
+                try:
+                    bn = boolforge.BooleanNetwork(F,I,var)
+                except AssertionError: 
+                    print(fname)
+                print(fname)
+                print(len(F),len(I),len(var))
+                print()
+    return 
+
 ## Similarity of networks
 def jaccard_similarity(list1, list2):
     '''
@@ -433,3 +581,5 @@ def exclude_similar_models(Fs,Is,degrees,degrees_essential,variabless,constantss
         N-=1
     models_excluded.reverse()
     return (Fs_copy,Is_copy,degrees_copy,degrees_essential_copy,variabless_copy,constantss_copy,models_loaded_copy,models_excluded,similar_sets)
+
+
