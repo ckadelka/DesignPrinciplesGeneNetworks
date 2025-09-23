@@ -403,12 +403,11 @@ def write_database_to_pickle(folders,separator_var_func="=",original_not="NOT",o
     models_not_loaded = []
     for folder in folders:
         for fname in os.listdir(folder):
-            print(fname)
-            continue
             if fname.endswith('tabular.txt'): #first check if it is a model that is already available in tabular form
                 try:
                     textfile = fname
                     F,I,degree,variables, constants = load_tabular_model(folder,fname,max_N=max_N)
+                    bn = boolforge.BooleanNetwork(F,I,variables+constants)
                     print(textfile,'converted')
                 except:
                     models_not_loaded.append(textfile)
@@ -419,7 +418,11 @@ def write_database_to_pickle(folders,separator_var_func="=",original_not="NOT",o
             elif fname.endswith('.txt'):
                 try:
                     textfile = fname
-                    F,I,degree,variables, constants = text_to_BN(folder,textfile,max_degree=max_degree,max_N=max_N)
+                    string = folder+textfile
+                    f = open(folder+textfile,'r')
+                    string = f.read()
+                    f.close()
+                    bn = boolforge.BooleanNetwork.from_string(string,max_degree=max_degree)
                     print(textfile,'converted')
                 except:
                     models_not_loaded.append(textfile)
@@ -432,7 +435,7 @@ def write_database_to_pickle(folders,separator_var_func="=",original_not="NOT",o
             #if len(constants)>0:
             #    print(textfile,'has %i constants' % len(constants))
             f = open(folder+textfile.split('.')[0]+'.pickle','wb')
-            pickle.dump([F,I,variables + constants],f)
+            pickle.dump(bn,f)
             f.close()
     return 
 
